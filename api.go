@@ -11,10 +11,10 @@ import (
 	"runtime/debug"
 	"syscall"
 
+	ictscnet "github.com/ophum/ictsc2019-n0stack/network"
 	"github.com/n0stack/n0stack/n0core/pkg/datastore/embed"
 
 	"github.com/n0stack/n0stack/n0core/pkg/api/deployment/image"
-	"github.com/n0stack/n0stack/n0core/pkg/api/pool/network"
 	"github.com/n0stack/n0stack/n0core/pkg/api/pool/node"
 	"github.com/n0stack/n0stack/n0core/pkg/api/provisioning/blockstorage"
 	"github.com/n0stack/n0stack/n0core/pkg/api/provisioning/virtualmachine"
@@ -70,7 +70,7 @@ func ServeAPI(ctx *cli.Context) error {
 	noa := node.CreateNodeAPI(ds)
 	noc := ppool.NewNodeServiceClient(conn)
 
-	nea := network.CreateNetworkAPI(ds)
+	nea := ictscnet.CreateNetworkAPI(ds)
 	nec := ppool.NewNetworkServiceClient(conn)
 
 	bsa := blockstorage.CreateBlockStorageAPI(ds, noc)

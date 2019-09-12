@@ -154,6 +154,21 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 						return nil
 					})
 
+					vlanId, err := a.GetVlanID(nd.NetworkName)
+					if err != nil {
+						return err
+					}
+					
+					if vlanId != 0 && a.externalInterface != nil {
+						v, err := iproute2.NewVlan(a.externalInterface, int(vlanId))
+						if err != nil {
+										return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
+						}
+						if err := v.SetMaster(b); err != nil {
+										return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
+						}
+					}
+
 					t, err := iproute2.NewTap(netutil.StructLinuxNetdevName(nd.Name))
 					if err != nil {
 						return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to create tap '%s': err='%s'", nd.Name, err.Error())
