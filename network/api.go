@@ -46,7 +46,7 @@ func (a NetworkAPI) ApplyNetwork(ctx context.Context, req *ppool.ApplyNetworkReq
 	defer a.dataStore.Unlock(req.Name)
 
 	network := &ppool.Network{}
-	if err := a.dataStore.Get(req.Name, network); err != nil {
+	if err := a.dataStore.Get(req.Name, network); err != nil  && !datastore.IsNotFound(err) {
 		return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to get data from db: err='%s'", err.Error())
 	}
 
