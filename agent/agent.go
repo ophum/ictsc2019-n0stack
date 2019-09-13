@@ -114,7 +114,6 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 	}
 	defer q.Close()
 
-	grpcutil.WrapGrpcErrorf(codes.Internal, "hgoehogehogehogehoge")
 	if !q.IsRunning() {
 		if err := q.Start(id, filepath.Join(wd, QmpMonitorSocketFile), vcpus, mem); err != nil {
 			return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to start qemu process: err=%s", err.Error())
@@ -208,17 +207,18 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 						}
 
 						eth[i].Address4 = ip
-						eth[i].Gateway4 = net.ParseIP(nd.Ipv4Gateway)
+						//eth[i].Gateway4 = net.ParseIP(nd.Ipv4Gateway)
+						eth[i].Gateway4 = net.ParseIP("192.168.0.254")
 						eth[i].NameServers = nameservers
 
 						// Gateway settings
-						if nd.Ipv4Gateway != "" {
-							mask := ip.SubnetMaskBits()
-							gatewayIP := fmt.Sprintf("%s/%d", nd.Ipv4Gateway, mask)
-							if err := b.SetAddress(gatewayIP); err != nil {
-								return errors.Wrapf(err, "Failed to set gateway IP to bridge: value=%s", gatewayIP)
-							}
-						}
+//						if nd.Ipv4Gateway != "" {
+//							mask := ip.SubnetMaskBits()
+//							gatewayIP := fmt.Sprintf("%s/%d", nd.Ipv4Gateway, mask)
+//							if err := b.SetAddress(gatewayIP); err != nil {
+//								return errors.Wrapf(err, "Failed to set gateway IP to bridge: value=%s", gatewayIP)
+//							}
+//						}
 					}
 
 					return nil
