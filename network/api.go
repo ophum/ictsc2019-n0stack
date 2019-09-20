@@ -1,7 +1,6 @@
 package ictscnetwork
 
 import (
-	"errors"
 	"context"
 
 	"google.golang.org/grpc/codes"
@@ -41,7 +40,7 @@ func (a NetworkAPI) ApplyNetwork(ctx context.Context, req *ppool.ApplyNetworkReq
 	}
 
 	if !a.dataStore.Lock(req.Name) {
-		return nil, errors.New("hoge")
+		return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to lock datastore")
 	}
 	defer a.dataStore.Unlock(req.Name)
 
@@ -52,7 +51,7 @@ func (a NetworkAPI) ApplyNetwork(ctx context.Context, req *ppool.ApplyNetworkReq
 
 	{
 		if network.Name != "" && ipv4.String() != network.Ipv4Cidr {
-			//return nil, grpcutil.WrapGrpcErrorf(codes.InvalidArgument, "ipv4 cidr is different from previous ipv4 cidr")
+			return nil, grpcutil.WrapGrpcErrorf(codes.InvalidArgument, "ipv4 cidr is different from previous ipv4 cidr")
 		}
 	}
 
