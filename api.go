@@ -11,12 +11,13 @@ import (
 	"runtime/debug"
 	"syscall"
 
-	ictscnet "github.com/ophum/ictsc2019-n0stack/network"
 	"github.com/n0stack/n0stack/n0core/pkg/datastore/embed"
+	ictscnet "github.com/ophum/ictsc2019-n0stack/network"
 
 	"github.com/n0stack/n0stack/n0core/pkg/api/deployment/image"
 	"github.com/n0stack/n0stack/n0core/pkg/api/pool/node"
 	"github.com/n0stack/n0stack/n0core/pkg/api/provisioning/blockstorage"
+
 	"github.com/n0stack/n0stack/n0core/pkg/api/provisioning/virtualmachine"
 	pdeployment "github.com/n0stack/n0stack/n0proto.go/deployment/v0"
 	ppool "github.com/n0stack/n0stack/n0proto.go/pool/v0"
@@ -25,7 +26,7 @@ import (
 	"github.com/rakyll/statik/fs"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	// "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	//"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -35,6 +36,8 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/urfave/cli"
+
+	//myvm "github.com/ophum/ictsc2019-n0stack/provisioning/vmictsc"
 )
 
 func OutputRecoveryLog(p interface{}) (err error) {
@@ -76,6 +79,7 @@ func ServeAPI(ctx *cli.Context) error {
 	bsa := blockstorage.CreateBlockStorageAPI(ds, noc)
 	bsc := pprovisioning.NewBlockStorageServiceClient(conn)
 
+	//vma := virtualmachine.CreateVirtualMachineAPI(ds, noc, nec, bsc)
 	vma := virtualmachine.CreateVirtualMachineAPI(ds, noc, nec, bsc)
 	// vmc := pprovisioning.NewVirtualMachineServiceClient(conn)
 
