@@ -16,6 +16,16 @@ VLANネットワークを作成した場合、そのネットワークのブリ�
 
 ## run
 ```
-# n0core serve api &
+# n0core serve api & 
 # systemctl start n0core-agent
+```
+
+## develop
+`go/src/github.com/ophum/ictsc2019-n0stack/`にソースコードが配置されている。
+
+### build
+```
+# cd go/src/github.com/ophum/ictsc2019-n0stack/
+# go build
+# ls ictsc2019-n0stack
 ```
