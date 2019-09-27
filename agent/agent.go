@@ -207,8 +207,8 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 						}
 
 						eth[i].Address4 = ip
-						//eth[i].Gateway4 = net.ParseIP(nd.Ipv4Gateway)
-						eth[i].Gateway4 = net.ParseIP("192.168.0.254")
+						eth[i].Gateway4 = net.ParseIP(nd.Ipv4Gateway)
+						//eth[i].Gateway4 = net.ParseIP("192.168.0.254")
 						eth[i].NameServers = nameservers
 
 						// Gateway settings
