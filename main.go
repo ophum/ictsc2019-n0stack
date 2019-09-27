@@ -21,7 +21,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "n0core"
 	app.Version = version
-	app.Usage = "The n0stack cluster manager, customized by hum_op"
+	app.Usage = "The n0stack cluster manager"
 	app.EnableBashCompletion = true
 
 	app.Commands = []cli.Command{
