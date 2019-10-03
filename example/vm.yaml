@@ -1,0 +1,106 @@
+gbs-vm100:
+  type: Image
+  action: GenerateBlockStorage
+  args:
+    image_name: cloudimage-ubuntu
+    tag: "1804"
+    block_storage_name: vm100
+    annotations:
+      n0core/provisioning/block_storage/request_node_name: n0stack
+    request_bytes: 1073741824
+    limit_bytes: 10737418240
+
+gbs-vm200:
+  type: Image
+  action: GenerateBlockStorage
+  args:
+    image_name: cloudimage-ubuntu
+    tag: "1804"
+    block_storage_name: vm200
+    annotations:
+      n0core/provisioning/block_storage/request_node_name: n0stack
+    request_bytes: 1073741824
+    limit_bytes: 10737418240
+
+gbs-native:
+  type: Image
+  action: GenerateBlockStorage
+  args:
+    image_name: cloudimage-ubuntu
+    tag: "1804"
+    block_storage_name: vm
+    annotations:
+      n0core/provisioning/block_storage/request_node_name: n0stack
+    request_bytes: 1073741824
+    limit_bytes: 10737418240
+
+cvm-vm100:
+  type: VirtualMachine
+  action: CreateVirtualMachine
+  args:
+    name: vm
+    annotations:
+      n0core/provisioning/virtual_machine/request_node_name: n0stack
+    request_cpu_milli_core: 10
+    limit_cpu_milli_core: 1000
+    request_memory_bytes: 1
+    limit_memory_bytes: 536870912
+    block_storage_names:
+      - vm
+    nics:
+      - network_name: net-native
+        ipv4_address: 192.168.0.1
+    login_username: n0user
+    uuid: 056d2ccd-0c4c-44dc-a2c8-39a9d394b51f
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4gv+pEEdJDcLEjWoivlWvk7uycZvxuVc+JLSr+U53MNEeAKkEHORotR+m+Q0qVXR7r29+eBg9l5dqsxkRs1Ivj04aSpFJOHK+aaUphToHWgf9aCQZz6tKqJZTywBMB5hcEzIcx1mnDIfU+1d96KpROL4307S0KZ+X5KPIiHoWX8o0tOc0A54iX6JjKaOx+lksJBojZ5SRoNA2iiRt9geB3oeL1JlBaURSbpQMYz5nuJgQw72X1iC4vz935WtU3/mmFnb4UT3yMjbLU7z1DH2sopvWzHzNX8Dv2iqH+pmlFbHfioC947l2AlaSqGnB6h7de9ojviA3jqpnWwQZDCAj
+  depends_on:
+    - gbs-native
+
+
+cvm-vm100:
+  type: VirtualMachine
+  action: CreateVirtualMachine
+  args:
+    name: vm100
+    annotations:
+      n0core/provisioning/virtual_machine/request_node_name: n0stack
+    request_cpu_milli_core: 10
+    limit_cpu_milli_core: 1000
+    request_memory_bytes: 1
+    limit_memory_bytes: 536870912
+    block_storage_names:
+      - vm1
+    nics:
+      - network_name: net-100
+        ipv4_address: 192.168.0.1
+    login_username: n0user
+    uuid: 056d2ccd-0c4c-44dc-a2c8-39a9d394b51f
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4gv+pEEdJDcLEjWoivlWvk7uycZvxuVc+JLSr+U53MNEeAKkEHORotR+m+Q0qVXR7r29+eBg9l5dqsxkRs1Ivj04aSpFJOHK+aaUphToHWgf9aCQZz6tKqJZTywBMB5hcEzIcx1mnDIfU+1d96KpROL4307S0KZ+X5KPIiHoWX8o0tOc0A54iX6JjKaOx+lksJBojZ5SRoNA2iiRt9geB3oeL1JlBaURSbpQMYz5nuJgQw72X1iC4vz935WtU3/mmFnb4UT3yMjbLU7z1DH2sopvWzHzNX8Dv2iqH+pmlFbHfioC947l2AlaSqGnB6h7de9ojviA3jqpnWwQZDCAj
+  depends_on:
+    - gbs-vm100
+
+cvm-vm200:
+  type: VirtualMachine
+  action: CreateVirtualMachine
+  args:
+    name: vm200
+    annotations:
+      n0core/provisioning/virtual_machine/request_node_name: n0stack
+    request_cpu_milli_core: 10
+    limit_cpu_milli_core: 1000
+    request_memory_bytes: 1
+    limit_memory_bytes: 536870912
+    block_storage_names:
+      - vm200
+    nics:
+      - network_name: net-200
+        ipv4_address: 192.168.0.1
+    login_username: n0user
+    uuid: 056d2ccd-0c4c-44dc-a2c8-39a9d394b51f
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC4gv+pEEdJDcLEjWoivlWvk7uycZvxuVc+JLSr+U53MNEeAKkEHORotR+m+Q0qVXR7r29+eBg9l5dqsxkRs1Ivj04aSpFJOHK+aaUphToHWgf9aCQZz6tKqJZTywBMB5hcEzIcx1mnDIfU+1d96KpROL4307S0KZ+X5KPIiHoWX8o0tOc0A54iX6JjKaOx+lksJBojZ5SRoNA2iiRt9geB3oeL1JlBaURSbpQMYz5nuJgQw72X1iC4vz935WtU3/mmFnb4UT3yMjbLU7z1DH2sopvWzHzNX8Dv2iqH+pmlFbHfioC947l2AlaSqGnB6h7de9ojviA3jqpnWwQZDCAj
+  depends_on:
+    - gbs-vm200
+
