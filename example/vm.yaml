@@ -34,7 +34,7 @@ gbs-native:
     request_bytes: 1073741824
     limit_bytes: 10737418240
 
-cvm-vm100:
+cvm-vm:
   type: VirtualMachine
   action: CreateVirtualMachine
   args:
@@ -70,7 +70,7 @@ cvm-vm100:
     request_memory_bytes: 1
     limit_memory_bytes: 536870912
     block_storage_names:
-      - vm1
+      - vm100
     nics:
       - network_name: net-100
         ipv4_address: 192.168.0.1
