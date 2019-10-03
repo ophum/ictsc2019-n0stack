@@ -1,0 +1,29 @@
+native:
+  type: Network
+  action: ApplyNetwork
+  args:
+    name: net-native
+    ipv4_cidr: 192.168.0.0/24
+    annotations:
+      n0core/provisioning/virtual_machine/vlan_id: "0"
+  ignore_error: true
+
+vlan100:
+  type: Network
+  action: ApplyNetwork
+  args:
+    name: net-100
+    ipv4_cidr: 192.168.0.0/24
+    annotations:
+      n0core/provisioning/virtual_machine/vlan_id: "100"
+  ignore_error: true
+  
+vlan200:
+  type: Network
+  action: ApplyNetwork
+  args:
+    name: net-200
+    ipv4_cidr: 192.168.0.0/24
+    annotations:
+      n0core/provisioning/virtual_machine/vlan_id: "200"
+  ignore_error: true

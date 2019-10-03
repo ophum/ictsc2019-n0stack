@@ -23,11 +23,14 @@ import (
 
 	"github.com/n0stack/n0stack/n0core/pkg/api/provisioning/virtualmachine"
 	ppool "github.com/n0stack/n0stack/n0proto.go/pool/v0"
-	"github.com/ophum/ictsc2019-n0stack/agent"
 	"github.com/urfave/cli"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+
+	// custom
+	//"github.com/ophum/ictsc2019-n0stack/provisioning/vmictsc"
+	vmictsc "github.com/ophum/ictsc2019-n0stack/agent"
 )
 
 const AnnotationNodeAgentVersion = "github.com/n0stack/n0stack/n0core/agent_version"
@@ -133,7 +136,7 @@ func ServeAgent(ctx *cli.Context) error {
 	unit := uint32(u)
 
 	bvm := filepath.Join(baseDirectory, "virtual_machine")
-	vma, err := agent.CreateVirtualMachineAgent(bvm, vlanInterface, nodeAPI)
+	vma, err := vmictsc.CreateVirtualMachineAgent(bvm, vlanInterface, nodeAPI)
 	if err != nil {
 		return err
 	}
