@@ -20,6 +20,13 @@ VLANネットワークを作成した場合、そのネットワークのブリ�
 # systemctl start n0core-agent
 ```
 
+`n0cli`をダウンロードする。(https://github.com/n0stack/n0stack/releases)
+
+```
+# tar xvf n0cli_linux_amd64.tar.gz
+# mv n0cli /usr/local/bin
+# n0cli get node
+```
 ## develop
 `go/src/github.com/ophum/ictsc2019-n0stack/`にソースコードが配置されている。
 
