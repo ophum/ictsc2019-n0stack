@@ -1,0 +1,96 @@
+dvm:
+  type: VirtualMachine
+  action: DeleteVirtualMachine
+  args:
+    name: vm
+  ignore_error: true
+
+dvm100:
+  type: VirtualMachine
+  action: DeleteVirtualMachine
+  args:
+    name: vm100
+  ignore_error: true
+
+dvm200:
+  type: VirtualMachine
+  action: DeleteVirtualMachine
+  args:
+    name: vm200
+  ignore_error: true
+
+dbs:
+  type: BlockStorage
+  action: DeleteBlockStorage
+  args:
+    name: vm
+  depends_on:
+    - dvm
+  ignore_error: true
+
+dbs100:
+  type: BlockStorage
+  action: DeleteBlockStorage
+  args:
+    name: vm100
+  depends_on:
+    - dvm100
+  ignore_error: true
+
+dbs200:
+  type: BlockStorage
+  action: DeleteBlockStorage
+  args:
+    name: vm200
+  depends_on:
+    - dvm200
+  ignore_error: true
+
+pbs:
+  type: BlockStorage
+  action: PurgeBlockStorage
+  args:
+    name: vm
+  depends_on:
+    - dbs
+  ignore_error: true
+
+pbs100:
+  type: BlockStorage
+  action: PurgeBlockStorage
+  args:
+    name: vm100
+  depends_on:
+    - dbs100
+  ignore_error: true
+
+pbs200:
+  type: BlockStorage
+  action: PurgeBlockStorage
+  args:
+    name: vm200
+  depends_on:
+    - dbs200
+  ignore_error: true
+
+dn:
+  type: Network
+  action: DeleteNetwork
+  args:
+    name: net-native
+  ignore_error: true
+
+dn100:
+  type: Network
+  action: DeleteNetwork
+  args:
+    name: net-100
+  ignore_error: true
+
+dn200:
+  type: Network
+  action: DeleteNetwork
+  args:
+    name: net-200
+  ignore_error: true
+
