@@ -29,6 +29,7 @@ import (
 	netutil "github.com/n0stack/n0stack/n0core/pkg/util/net"
 	"github.com/n0stack/n0stack/n0proto.go/pkg/transaction"
 	ppool "github.com/n0stack/n0stack/n0proto.go/pool/v0"
+	pprovisioning "github.com/n0stack/n0stack/n0proto.go/provisioning/v0"
 )
 
 const (
@@ -100,6 +101,23 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 	vcpus := req.Vcpus
 	mem := req.MemoryBytes
 
+	// n0core/provisioning/virtual_machine/hostnameで指定されたホスト名を取り出す
+	endpoint := a.apiEndpoint
+	conn, err := grpc.Dial(endpoint, grpc.WithInsecure())
+	if err != nil {
+		return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to connect virtual machine api: err='%s'", err.Error())
+	}
+	defer conn.Close()
+	vmcl := pprovisioning.NewVirtualMachineServiceClient(conn)
+	connectVM, err := vmcl.GetVirtualMachine(context.Background(), &pprovisioning.GetVirtualMachineRequest{Name: name})
+	if err != nil {
+		return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to get virtual machine: err='%s'", err.Error())
+	}
+	annotations := connectVM.GetAnnotations()
+	hostname := annotations[AnnotationHostName]
+	if hostname == "" {
+		hostname = name
+	}
 	tx := transaction.Begin()
 	defer tx.RollbackWithLog()
 
@@ -157,14 +175,14 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 					if err != nil {
 						return err
 					}
-					
+
 					if vlanId != 0 && a.externalInterface != nil {
 						v, err := iproute2.NewVlan(a.externalInterface, int(vlanId))
 						if err != nil {
-										return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
+							return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
 						}
 						if err := v.SetMaster(b); err != nil {
-										return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
+							return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed for vlan to set master: err=%s", err.Error())
 						}
 					}
 
@@ -212,13 +230,13 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 						eth[i].NameServers = nameservers
 
 						// Gateway settings
-//						if nd.Ipv4Gateway != "" {
-//							mask := ip.SubnetMaskBits()
-//							gatewayIP := fmt.Sprintf("%s/%d", nd.Ipv4Gateway, mask)
-//							if err := b.SetAddress(gatewayIP); err != nil {
-//								return errors.Wrapf(err, "Failed to set gateway IP to bridge: value=%s", gatewayIP)
-//							}
-//						}
+						//						if nd.Ipv4Gateway != "" {
+						//							mask := ip.SubnetMaskBits()
+						//							gatewayIP := fmt.Sprintf("%s/%d", nd.Ipv4Gateway, mask)
+						//							if err := b.SetAddress(gatewayIP); err != nil {
+						//								return errors.Wrapf(err, "Failed to set gateway IP to bridge: value=%s", gatewayIP)
+						//							}
+						//						}
 					}
 
 					return nil
@@ -239,7 +257,8 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 				}
 			}
 
-			c := configdrive.StructConfig(req.LoginUsername, req.Name, parsedKeys, eth)
+			//c := configdrive.StructConfig(req.LoginUsername, req.Name, parsedKeys, eth)
+			c := configdrive.StructConfig(req.LoginUsername, hostname, parsedKeys, eth)
 			p, err := c.Generate(wd)
 			if err != nil {
 				return nil, grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to generate cloudinit configdrive:  err='%s'", err.Error())
