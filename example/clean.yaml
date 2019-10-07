@@ -78,6 +78,8 @@ dn:
   action: DeleteNetwork
   args:
     name: net-native
+  depends_on:
+    - dvm
   ignore_error: true
 
 dn100:
@@ -85,6 +87,8 @@ dn100:
   action: DeleteNetwork
   args:
     name: net-100
+  depends_on:
+    - dvm100
   ignore_error: true
 
 dn200:
@@ -92,5 +96,7 @@ dn200:
   action: DeleteNetwork
   args:
     name: net-200
+  depends_on:
+    - dvm200
   ignore_error: true
 
