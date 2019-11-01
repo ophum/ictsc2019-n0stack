@@ -104,6 +104,33 @@ let getNetSuffix = (name) => {
 let drawRect = () => {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+	for(var i = 0; i < vms.length; i++) {
+		v = vms[i];
+		for(var j = 0; j < v.nics.length; j++) {
+			var s = getNetSuffix(v.nics[j]['network_name']);
+			var nx = ns[s].x;
+			var ny = ns[s].y;
+
+			ctx.beginPath();
+			ctx.moveTo(v.x, v.y);
+			ctx.lineTo(nx, ny);
+			ctx.closePath();
+			ctx.stroke();
+		}
+		if(i == selectedVm) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
+		}
+
+		ctx.fillStyle = 'rgb(0, 128, 128)';
+		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
+
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.font = '16px Arial';
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
+		
+	}
+
 	for(var i = 0; i < ns.length; i++) {
 		v = ns[i];
 		if(i == selectedNet) {
@@ -118,32 +145,6 @@ let drawRect = () => {
 		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
 		ctx.fillText(v.ipv4_cidr, v.x - ctx.measureText(v.ipv4_cidr).width / 2, v.y + objHeight / 2 + 32);
 	}
-
-	for(var i = 0; i < vms.length; i++) {
-		v = vms[i];
-		if(i == selectedVm) {
-			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
-		}
-		ctx.fillStyle = 'rgb(0, 128, 128)';
-		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
-
-		ctx.fillStyle = 'rgb(0, 0, 0)';
-		ctx.font = '16px Arial';
-		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
-		for(var j = 0; j < v.nics.length; j++) {
-			var s = getNetSuffix(v.nics[j]['network_name']);
-			var nx = ns[s].x;
-			var ny = ns[s].y;
-
-			ctx.beginPath();
-			ctx.moveTo(v.x, v.y);
-			ctx.lineTo(nx, ny);
-			ctx.closePath();
-			ctx.stroke();
-		}
-	}
-
 
 };
 
