@@ -316,6 +316,8 @@ function CreateVirtualMachine(v) {
 			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
 		}
 	}
+	if(this.args.nics.length == 0) delete this.args.nics;
+	if(this.args.depends_on == 0) delete this.args.depends_on;
 
 }
 
