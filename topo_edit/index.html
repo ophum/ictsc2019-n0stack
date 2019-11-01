@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>test</title>
+	</head>
+<style>
+	#canvas {
+		background: #ccc;
+	}
+
+	#net_properties {
+		display: none;
+	}
+
+	#vm_properties {
+		display: none;
+	}
+</style>
+<body onload="init()">
+
+<select id="item">
+	<option value="net">Network</option>
+	<option value="vm">VirtualMachine</option>
+</select>
+<input id="gen" type="button" value="gen">
+
+<canvas id="canvas" width="640" height="480"></canvas>
+<div id="net_properties">
+	<div>
+		<label>Network Name</label>
+		<input id="net_name" type="text">
+	</div>
+	<div>
+		<label>Ipv4_cidr</label>
+		<input id="net_ipv4_cidr" type="text">
+	</div>
+	<div>
+		<label>Ipv6_cidr</label>
+		<input id="net_ipv6_cidr" type="text">
+	</div>
+	<div>
+		<label>Vlan ID</label>
+		<input id="net_vlanid" type="text">
+	</div>
+	<div>
+		<input id="net_delete" type="button" value="削除">
+	</div>
+</div>
+
+<div id="vm_properties">
+	<div>
+		<label>VM Name</label>
+		<input id="vm_name" type="text">
+	</div>
+	<div>
+		<label>Vcpus</label>
+		<input id="vm_limit_cpu_milli_core" type="text">
+	</div>
+	<div>
+		<label>Memory(MB)</label>
+		<input id="vm_limit_memory_bytes" type="text">
+	</div>
+	<div>
+		<label>Networks</label>
+		<select id="vm_select_networks">
+		</select>
+		<input id="vm_select_network_add" type="button" value="ADD">
+		<ul id="vm_selected_networks">
+
+		</ul>
+	</div>
+	<div>
+		<input id="vm_delete" type="button" value="削除">
+	</div>
+</div>
+	<textarea id="output"></textarea>
+	<script>
+
+var ns = [];
+var vms = [];
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext('2d');
+var objX, objY;
+var objWidth, objHeight;
+
+let init = () => {
+	objWidth = 50;
+	objHeight = 50;
+
+	objX = canvas.width / 2 - objWidth / 2;
+	objY = canvas.height/ 2 - objHeight / 2;
+
+	drawRect();
+};
+
+let getNetSuffix = (name) => {
+	for(var i = 0; i < ns.length; i++) {
+		if(ns[i].name == name) return i;
+	}
+
+	return -1;
+};
+let drawRect = () => {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	for(var i = 0; i < ns.length; i++) {
+		v = ns[i];
+		if(i == selectedNet) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
+		}
+		ctx.fillStyle = 'rgb(0, 128, 0)';
+		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
+
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.font = '16px Arial';
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
+		ctx.fillText(v.ipv4_cidr, v.x - ctx.measureText(v.ipv4_cidr).width / 2, v.y + objHeight / 2 + 32);
+	}
+
+	for(var i = 0; i < vms.length; i++) {
+		v = vms[i];
+		if(i == selectedVm) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
+		}
+		ctx.fillStyle = 'rgb(0, 128, 128)';
+		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
+
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.font = '16px Arial';
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
+		for(var j = 0; j < v.nics.length; j++) {
+			var s = getNetSuffix(v.nics[j]['network_name']);
+			var nx = ns[s].x;
+			var ny = ns[s].y;
+
+			ctx.beginPath();
+			ctx.moveTo(v.x, v.y);
+			ctx.lineTo(nx, ny);
+			ctx.closePath();
+			ctx.stroke();
+		}
+	}
+
+
+};
+
+var relX, relY;
+var dragging_net = -1;
+var dragging_vm = -1;
+var selectedNet = -1;
+var selectedVm = -1;
+let el = (id) => {
+	return document.getElementById(id);
+};
+
+function Network(_x, _y) {
+	this.x = _x;
+	this.y = _y;
+	this.name = "";
+	this.ipv4_cidr = "";
+	this.ipv6_cidr = "";
+	this.annotations = {
+		"n0core/provisioning/virtual_machine/vlan_id": "",
+	};
+}
+
+let openNetProperties = () => {
+	let n = ns[selectedNet];
+	el("net_properties").style.display = 'block';
+	el("vm_properties").style.display = 'none';
+	el("net_name").value = n.name;
+	el("net_ipv4_cidr").value = n.ipv4_cidr;
+	el("net_ipv6_cidr").value = n.ipv6_cidr;
+	el("net_vlanid").value = n.annotations['n0core/provisioning/virtual_machine/vlan_id'];
+
+};
+
+el("net_name").addEventListener('input', (e) => {
+	ns[selectedNet].name = e.target.value;
+	drawRect();
+});
+
+el("net_ipv4_cidr").addEventListener('input', (e) => {
+	ns[selectedNet].ipv4_cidr = e.target.value;
+	drawRect();
+});
+
+el("net_ipv6_cidr").addEventListener('input', (e) => {
+	ns[selectedNet].ipv6_cidr = e.target.value;
+	drawRect();
+});
+
+el("net_vlanid").addEventListener('input', (e) => {
+	ns[selectedNet].annotations['n0core/provisioning/virtual_machine/vlan_id'] = e.target.value;
+	drawRect();
+});
+
+el("net_delete").addEventListener('click', () => {
+	if(selectedNet >= 0) {
+		ns.splice(selectedNet, 1);
+		selectedNet = -1;
+		drawRect();
+	}
+});
+function VirtualMachine(_x, _y) {
+	this.x = _x;
+	this.y = _y;
+	this.name = "";
+	this.request_cpu_milli_core = 10;
+	this.limit_cpu_milli_core = 1000; 
+	this.request_memory_bytes = 1;
+	this.limit_memory_bytes = 512 * 1024 * 1024;
+	this.nics = [];
+}
+
+let vm_network_detach = (i) => {
+	vms[selectedVm].nics.splice(i, 1);
+	openVirtualMachineProperties();
+	drawRect();
+};
+
+let openVirtualMachineProperties = () => {
+	let v = vms[selectedVm];
+
+	el("net_properties").style.display = 'none';
+	el("vm_properties").style.display = 'block';
+
+	el("vm_name").value = v.name;
+	el("vm_limit_cpu_milli_core").value = v.limit_cpu_milli_core / 1000;
+	el("vm_limit_memory_bytes").value = v.limit_memory_bytes / 1024 / 1024;
+
+	var select_networks = "";
+	for(var i = 0; i < ns.length; i++) {
+		let n = ns[i];
+		select_networks += "<option value='" + i + "'>" + n.name + " | " + n.ipv4_cidr + " | " + n.ipv6_cidr + " | " + n.annotations["n0core/provisioning/virtual_machine/vlan_id"] + "</option>";
+	}
+	el("vm_select_networks").innerHTML = select_networks;
+
+	var networks = "";
+	for(var i = 0; i < v.nics.length; i++) {
+		let n = v.nics[i];
+		networks += "<li>" + n['network_name'] + "<button onClick='vm_network_detach(" + i + ")'>x</button></li>";
+	}
+
+	el("vm_selected_networks").innerHTML = networks;
+};
+
+el("vm_name").addEventListener('input', (e) => {
+	vms[selectedVm].name = e.target.value;
+	drawRect();
+});
+
+el("vm_limit_cpu_milli_core").addEventListener('input', (e) => {
+	vms[selectedVm].limit_cpu_milli_core = e.target.value * 1000;
+});
+
+el("vm_limit_memory_bytes").addEventListener('input', (e) => {
+	vms[selectedVm].limit_memory_bytes = e.target.value * 1024 * 1024;
+});
+
+el("vm_select_network_add").addEventListener('click', () => {
+	var i = el("vm_select_networks").value;
+	let nic = ns[i];
+
+	vms[selectedVm].nics[vms[selectedVm].nics.length] = {
+		"network_name": nic.name,
+	};
+	drawRect();
+	openVirtualMachineProperties();
+});
+
+el("vm_delete").addEventListener('click', () => {
+	if(selectedVm >= 0) {
+		vms.splice(selectedVm, 1);
+		selectedVm = -1;
+		drawRect();
+	}
+});
+function ApplyNetwork(n) {
+	this.type = "Network";
+	this.action ="ApplyNetwork";
+	
+	this.args = new Object();
+	this.args.name = n.name;
+	if(n.ipv4_cidr != "") {
+		this.args.ipv4_cidr = n.ipv4_cidr;
+	}
+	if(n.ipv6_cidr != "") {
+		this.args.ipv6_cidr = n.ipv6_cidr;
+	}
+	if(n.annotations['n0core/provisioning/virtual_machine/vlan_id'] != "") {
+		this.args.annotations = n.annotations;
+	}
+	this.ignore_error = true;
+}
+
+function CreateVirtualMachine(v) {
+	this.type = "VirtualMachine";
+	this.action = "CreateVirtualMachine";
+	this.args = new Object();
+	this.args.name = v.name;
+	this.args.request_cpu_milli_core = v.request_cpu_milli_core;
+	this.args.limit_cpu_milli_core = v.limit_cpu_milli_core;
+	this.args.request_memory_bytes = v.request_memory_bytes;
+	this.args.limit_memory_bytes = v.limit_memory_bytes;
+	this.args.nics = [];
+	this.args.depends_on = [];
+	for(var i = 0; i < v.nics.length; i++) {
+		this.args.nics[i] = {};
+		this.args.nics[i].network_name = v.nics[i]['network_name'];
+		this.args.depends_on[this.args.depends_on.length] = v.nics[i]['network_name'];
+		if(v.nics[i]['ipv4_address'] != "") {
+			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
+		}
+	}
+
+}
+
+el("gen").addEventListener('click', () => {
+	var output = "";
+	for(var i = 0; i < ns.length; i++) {
+		var n = ns[i];
+		var an = new ApplyNetwork(n);
+		var name = "an-" + n.name;
+		var obj = {};
+		obj[name] = an;
+		let json = JSON.stringify(obj);
+		if(vms.length == 0) output += json + '\n'; 
+		else output += json + ',\n';
+		console.log(json);
+	}
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		var cvm = new CreateVirtualMachine(v);
+		var name = "cvm-" + v.name;
+		var obj = {};
+		obj[name] = cvm;
+		console.log(obj);
+		let json = JSON.stringify(obj);
+		if(i != vms.length - 1) output += json + ',\n';
+		else output += json + '\n';
+		console.log(json);
+	}
+	el("output").value ='[' + output + ']';
+});
+canvas.addEventListener('mousedown', (e) => {
+
+	var offsetX = canvas.getBoundingClientRect().left;
+	var offsetY = canvas.getBoundingClientRect().top;
+
+	let x = e.clientX - offsetX;
+	let y = e.clientY - offsetY;
+
+	for(var i = 0; i < ns.length; i++) {
+		v = ns[i];
+		if(v.x - objWidth / 2 < x && (v.x + objWidth /  2) > x && v.y - objHeight / 2 < y && (v.y + objHeight / 2) >y) {
+			selectedNet = i;
+			selectedVm = -1;
+			openNetProperties();
+			dragging_vm = -1;
+			dragging_net = i;
+			relX = v.x - x;
+			relY = v.y - y;
+			return;
+		}
+	}
+	for(var i = 0; i < vms.length; i++) {
+		v = vms[i];
+		if(v.x - objWidth / 2 < x && (v.x + objWidth /  2) > x && v.y - objHeight / 2 < y && (v.y + objHeight / 2) >y) {
+			selectedVm = i;
+			selectedNet = -1;
+			openVirtualMachineProperties();
+			dragging_net = -1;
+			dragging_vm = i;
+			relX = v.x - x;
+			relY = v.y - y;
+			return;
+		}
+	}
+
+
+	let item = document.getElementById("item").value;
+	switch(item) {
+	case 'net':
+		ns[ns.length] = new Network(x, y);
+		selectedNet = ns.length-1;
+		selectedVm = -1;
+		openNetProperties();
+		break;
+	case 'vm':
+		vms[vms.length] = new VirtualMachine(x, y);
+		selectedVm = vms.length - 1;
+		selectedNet = -1;
+		openVirtualMachineProperties();
+		break;
+	}
+	drawRect();
+}, false);
+
+canvas.addEventListener('mousemove', (e) => {
+	if(dragging_net >= 0) {
+		var offsetX = canvas.getBoundingClientRect().left;
+		var offsetY = canvas.getBoundingClientRect().top;
+
+		x = e.clientX - offsetX;
+		y = e.clientY - offsetY;
+
+		ns[dragging_net].x = x + relX;
+		ns[dragging_net].y = y + relY;
+
+		drawRect();
+
+	}else if(dragging_vm >= 0) {
+		var offsetX = canvas.getBoundingClientRect().left;
+		var offsetY = canvas.getBoundingClientRect().top;
+
+		x = e.clientX - offsetX;
+		y = e.clientY - offsetY;
+
+		vms[dragging_vm].x = x + relX;
+		vms[dragging_vm].y = y + relY;
+
+		drawRect();
+	}
+}, false);
+
+canvas.addEventListener('mouseup', (e) => {
+	dragging_net = dragging_vm = -1;
+}, false)
+	</script>
+</body>
+</html>
