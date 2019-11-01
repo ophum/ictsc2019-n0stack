@@ -311,7 +311,7 @@ function CreateVirtualMachine(v) {
 	for(var i = 0; i < v.nics.length; i++) {
 		this.args.nics[i] = {};
 		this.args.nics[i].network_name = v.nics[i]['network_name'];
-		this.args.depends_on[this.args.depends_on.length] = v.nics[i]['network_name'];
+		this.args.depends_on[this.args.depends_on.length] = "an-" + v.nics[i]['network_name'];
 		if(v.nics[i]['ipv4_address'] != "") {
 			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
 		}
