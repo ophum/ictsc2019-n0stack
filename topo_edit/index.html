@@ -84,9 +84,23 @@ var ctx = canvas.getContext('2d');
 var objX, objY;
 var objWidth, objHeight;
 
+function netImage() {
+	this.width = 50;
+	this.height = 25;
+}
+
+function vmImage() {
+	this.width = 50;
+	this.height = 70;
+}
+
+var netimg = new netImage();
+var vmimg = new vmImage();
+
 let init = () => {
 	objWidth = 50;
 	objHeight = 50;
+	
 
 	objX = canvas.width / 2 - objWidth / 2;
 	objY = canvas.height/ 2 - objHeight / 2;
@@ -119,15 +133,19 @@ let drawRect = () => {
 		}
 		if(i == selectedVm) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
+			ctx.fillRect(v.x - vmimg.width / 2  - 5, v.y - vmimg.height / 2 - 5, vmimg.width + 10, vmimg.height + 10);
 		}
 
 		ctx.fillStyle = 'rgb(0, 128, 128)';
-		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
+		ctx.fillRect(v.x - vmimg.width / 2, v.y - vmimg.height / 2, vmimg.width, vmimg.height);
+
+		ctx.fillStyle = 'rgb(128,128,128)';
+		ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 5, vmimg.width - 10, 10);
+		ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 20, vmimg.width - 10, 10);
 
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.font = '16px Arial';
-		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + vmimg.height / 2 + 16);
 		
 	}
 
@@ -135,15 +153,16 @@ let drawRect = () => {
 		v = ns[i];
 		if(i == selectedNet) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(v.x - objWidth / 2  - 5, v.y - objHeight / 2 - 5, objWidth + 10, objHeight + 10);
+			ctx.fillRect(v.x - netimg.width / 2  - 5, v.y - netimg.height/ 2 - 5, netimg.width + 10, netimg.height + 10);
 		}
 		ctx.fillStyle = 'rgb(0, 128, 0)';
-		ctx.fillRect(v.x - objWidth / 2, v.y - objHeight / 2, objWidth, objHeight);
+		ctx.fillRect(v.x - netimg.width / 2, v.y - netimg.height / 2, netimg.width, netimg.height);
+
 
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.font = '16px Arial';
-		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + objHeight / 2 + 16);
-		ctx.fillText(v.ipv4_cidr, v.x - ctx.measureText(v.ipv4_cidr).width / 2, v.y + objHeight / 2 + 32);
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + netimg.height / 2 + 16);
+		ctx.fillText(v.ipv4_cidr, v.x - ctx.measureText(v.ipv4_cidr).width / 2, v.y + netimg.height / 2 + 32);
 	}
 
 };
