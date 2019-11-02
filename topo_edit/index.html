@@ -134,6 +134,7 @@
 </div>
 <div class="output_area">
 	<input id="gen" type="button" value="gen">
+	<input id="load" type="button" value="load">
 	<textarea id="output"></textarea>
 </div>
 	<script>
@@ -604,6 +605,48 @@ el("gen").addEventListener('click', () => {
 	output = JSON.stringify(obj, null, 2);
 	el("output").value = output;
 });
+
+el("load").addEventListener('click', () => {
+	let json = el("output").value;
+	var obj = JSON.parse(json);
+
+	ns = [];
+	vms = [];
+	var nsx = 100;
+	var nsy = 200;
+	for(k in obj) {
+		var v = obj[k]
+		switch(v.action) {
+		case "DeleteNetwork": case "DeleteVirtualMachine": case "DeleteBlockStorage": case "PurgeBlockStorage": continue;
+		case "ApplyNetwork":
+			ns[ns.length] = new Network(nsx, nsy);
+
+			nsx += 50;
+			if(nsx >= 800) {
+				nsx = 100;
+				nsy += 50;
+				if(nsy > 750) {
+					nsy = 750;
+				}
+			}
+			s = ns.length - 1;
+			ns[s].name = v.args.name;
+			
+			if('ipv4_cidr' in v.args) {
+				ns[s].ipv4_cidr = v.args.ipv4_cidr;
+			}
+			if('ipv6_cidr' in v.args) {
+				ns[s].ipv6_cidr = v.args.ipv6_cidr;
+			}
+			if('annotations' in v.args) {
+				ns[s].annotations = v.args.annotations;
+			} 
+		}
+		console.log(v);
+	} 
+	drawRect();
+});
+
 canvas.addEventListener('mousedown', (e) => {
 
 	var offsetX = canvas.getBoundingClientRect().left;
