@@ -398,6 +398,8 @@ function CreateVirtualMachine(v) {
 	this.args.limit_cpu_milli_core = v.limit_cpu_milli_core;
 	this.args.request_memory_bytes = v.request_memory_bytes;
 	this.args.limit_memory_bytes = v.limit_memory_bytes;
+	this.args.annotations = {};
+	this.args.annotations['n0core/provisioning/virtual_machine/request_node_name'] = node_name;
 	this.args.nics = [];
 	this.args.depends_on = [];
 	for(var i = 0; i < v.nics.length; i++) {
