@@ -408,7 +408,19 @@ function CreateVirtualMachine(v) {
 			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
 		}
 	}
+
+	this.args.block_storage_names = [];
+	for(var i = 0; i < v.block_storages.length; i++) {
+		this.args.block_storage_names[i] = v.block_storages[i].name;
+		var name = "";
+		if(v.block_storages[i].image_name != "") {
+			name = "gbs-";
+		}
+		this.args.depends_on[this.args.depends_on.length] = name + v.block_storages[i].name; 
+	}
+	
 	if(this.args.nics.length == 0) delete this.args.nics;
+	if(this.args.block_storage_names == 0) delete this.args.block_storage_names;
 	if(this.args.depends_on == 0) delete this.args.depends_on;
 
 }
