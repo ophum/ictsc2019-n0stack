@@ -441,12 +441,25 @@ function GenerateBlockStorage(b) {
 	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
 } 
 
+function DeleteVirtualMachine(v) {
+	this.type = "VirtualMachine";
+	this.action = "DeleteVirtualMachine";
+	this.args = new Object();
+	this.args.name = v.name;
+	this.ignore_error = true;
+}
 
 
 el("gen").addEventListener('click', () => {
 	var output = "";
 	var obj = new Object();
 
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		var dvm = new DeleteVirtualMachine(v);
+		var name = "dvm-" + v.name;
+		obj[name] = dvm;
+	}
 
 	for(var i = 0; i < ns.length; i++) {
 		var n = ns[i];
