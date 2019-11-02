@@ -427,7 +427,7 @@ function CreateVirtualMachine(v) {
 	
 	if(this.args.nics.length == 0) delete this.args.nics;
 	if(this.args.block_storage_names == 0) delete this.args.block_storage_names;
-	if(this.depends_on == 0) delete this.args.depends_on;
+	if(this.depends_on == 0) delete this.depends_on;
 
 }
 
@@ -468,7 +468,7 @@ function PurgeBlockStorage(b) {
 	this.action = "PurgeBlockStorage";
 	this.args = new Object();
 	this.args.name = b.name;
-	this.args.depends_on = "dbs-" + b.name;
+	this.depends_on = ["dbs-" + b.name];
 	this.ignore_error = true;
 }
 
@@ -505,7 +505,7 @@ el("gen").addEventListener('click', () => {
 		var v = vms[i];
 		for(var j = 0; j < v.block_storages.length; j++) {
 			var b = v.block_storages[j];
-			var dbs = new DeleteBlockStorage(b, "dvm-" + v.name);
+			var dbs = new DeleteBlockStorage(b, ["dvm-" + v.name]);
 			var pbs = new PurgeBlockStorage(b);
 			var name = "dbs-" + b.name;
 			obj[name] = dbs;
