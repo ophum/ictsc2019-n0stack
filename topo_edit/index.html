@@ -449,6 +449,23 @@ function DeleteVirtualMachine(v) {
 	this.ignore_error = true;
 }
 
+function DeleteBlockStorage(b, depends_on) {
+	this.type = "BlockStorage";
+	this.action = "DeleteBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	if(depends_on.length != 0) this.depends_on = depends_on;
+	this.ignore_error = true;
+}
+
+function PurgeBlockStorage(b) {
+	this.type = "BlockStorage";
+	this.action = "PurgeBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	this.args.depends_on = "dbs-" + b.name;
+	this.ignore_error = true;
+}
 
 el("gen").addEventListener('click', () => {
 	var output = "";
@@ -459,6 +476,19 @@ el("gen").addEventListener('click', () => {
 		var dvm = new DeleteVirtualMachine(v);
 		var name = "dvm-" + v.name;
 		obj[name] = dvm;
+	}
+
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.block_storages.length; j++) {
+			var b = v.block_storages[j];
+			var dbs = new DeleteBlockStorage(b, "dvm-" + v.name);
+			var pbs = new PurgeBlockStorage(b);
+			var name = "dbs-" + b.name;
+			obj[name] = dbs;
+			name = "pbs-" + b.name;
+			obj[name] = pbs;
+		}
 	}
 
 	for(var i = 0; i < ns.length; i++) {
