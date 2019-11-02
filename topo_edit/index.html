@@ -441,18 +441,18 @@ function GenerateBlockStorage(b) {
 	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
 } 
 
+
+
 el("gen").addEventListener('click', () => {
 	var output = "";
+	var obj = new Object();
+
+
 	for(var i = 0; i < ns.length; i++) {
 		var n = ns[i];
 		var an = new ApplyNetwork(n);
 		var name = "an-" + n.name;
-		var obj = {};
 		obj[name] = an;
-		let json = JSON.stringify(obj);
-		if(vms.length == 0) output += json + '\n'; 
-		else output += json + ',\n';
-		console.log(json);
 	}
 	for(var i = 0; i < vms.length; i++) {
 		var v = vms[i];
@@ -467,24 +467,16 @@ el("gen").addEventListener('click', () => {
 
 			if(bs === null) continue;
 			name += b.name;
-			var obj = {};
 			obj[name] = bs;
-			let json = JSON.stringify(obj);
-			output += json + ',\n';
 		}
 	}
 	for(var i = 0; i < vms.length; i++) {
 		var v = vms[i];
 		var cvm = new CreateVirtualMachine(v);
 		var name = "cvm-" + v.name;
-		var obj = {};
 		obj[name] = cvm;
-		console.log(obj);
-		let json = JSON.stringify(obj);
-		if(i != vms.length - 1) output += json + ',\n';
-		else output += json + '\n';
-		console.log(json);
 	}
+	output = JSON.stringify(obj);
 	el("output").value ='[' + output + ']';
 });
 canvas.addEventListener('mousedown', (e) => {
