@@ -5,6 +5,28 @@
 		<title>test</title>
 	</head>
 <style>
+
+	.container {
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+	}
+	.output_area {
+		width: 100%;
+		height: auto;
+		display:flex;
+		flex-direction: column;
+	}
+
+	.output_area textarea {
+		height: 480px;
+	}
+
+	.properties {
+		width: 400px;
+		height: auto;
+	}
 	#canvas {
 		background: #ccc;
 	}
@@ -16,92 +38,104 @@
 	#vm_properties {
 		display: none;
 	}
+
 </style>
 <body onload="init()">
 
-<input id="node_name" type="text" placeholder="node name">
-<select id="item">
-	<option value="net">Network</option>
-	<option value="vm">VirtualMachine</option>
-</select>
-<input id="gen" type="button" value="gen">
+<div class="container">
+	<canvas id="canvas" width="800" height="600"></canvas>
+	<div class="properties">
+		<div>
+			<label>Node Name</label>
+			<input id="node_name" type="text" placeholder="node name">
+		</div>
+		<div>
+			<label>Object</label>
+			<select id="item" multiple size=2>
+				<option value="net" selected>Network</option>
+				<option value="vm">VirtualMachine</option>
+			</select>
+		</div>
+		<div id="net_properties">
+			<div>
+				<input id="net_delete" type="button" value="削除">
+			</div>
+			<div>
+				<label>Network Name</label>
+				<input id="net_name" type="text">
+			</div>
+			<div>
+				<label>Ipv4_cidr</label>
+				<input id="net_ipv4_cidr" type="text">
+			</div>
+			<div>
+				<label>Ipv6_cidr</label>
+				<input id="net_ipv6_cidr" type="text">
+			</div>
+			<div>
+				<label>Vlan ID</label>
+				<input id="net_vlanid" type="text">
+			</div>
+		</div>
 
-<canvas id="canvas" width="640" height="480"></canvas>
-<div id="net_properties">
-	<div>
-		<label>Network Name</label>
-		<input id="net_name" type="text">
-	</div>
-	<div>
-		<label>Ipv4_cidr</label>
-		<input id="net_ipv4_cidr" type="text">
-	</div>
-	<div>
-		<label>Ipv6_cidr</label>
-		<input id="net_ipv6_cidr" type="text">
-	</div>
-	<div>
-		<label>Vlan ID</label>
-		<input id="net_vlanid" type="text">
-	</div>
-	<div>
-		<input id="net_delete" type="button" value="削除">
+		<div id="vm_properties">
+			<div>
+				<input id="vm_delete" type="button" value="削除">
+			</div>
+			<div>
+				<label>VM Name</label>
+				<input id="vm_name" type="text">
+			</div>
+			<div>
+				<label>Vcpus</label>
+				<input id="vm_limit_cpu_milli_core" type="text">
+			</div>
+			<div>
+				<label>Memory(MB)</label>
+				<input id="vm_limit_memory_bytes" type="text">
+			</div>
+			<div>
+				<label>Networks</label>
+				<select id="vm_select_networks">
+				</select>
+				<input id="vm_select_network_add" type="button" value="Attach">
+				<ul id="vm_selected_networks">
+
+				</ul>
+			</div>
+			<div>
+				<label>BlockStorages</label>
+				<input id="vm_block_storage_add" type="button" value="Add">
+				<div>
+					<label>BS Name</label>
+					<input id="vm_bs_name" type="text">
+				</div>
+				<div>
+					<label>Image Name</label>
+					<input id="vm_bs_image_name" type="text">
+				</div>
+				<div>
+					<label>Tag</label>
+					<input id="vm_bs_tag" type="text">
+				</div>
+				<div>
+					<label>RequestSize(GB)</label>
+					<input id="vm_bs_request_bytes" type="text">
+				</div>
+				<div>
+					<label>LimitSize(GB)</label>
+					<input id="vm_bs_limit_bytes" type="text">
+				</div>
+				<ul id="vm_block_storages"></ul>
+			</div>
+
+		</div>
 	</div>
 </div>
-
-<div id="vm_properties">
-	<div>
-		<label>VM Name</label>
-		<input id="vm_name" type="text">
-	</div>
-	<div>
-		<label>Vcpus</label>
-		<input id="vm_limit_cpu_milli_core" type="text">
-	</div>
-	<div>
-		<label>Memory(MB)</label>
-		<input id="vm_limit_memory_bytes" type="text">
-	</div>
-	<div>
-		<label>Networks</label>
-		<select id="vm_select_networks">
-		</select>
-		<input id="vm_select_network_add" type="button" value="ADD">
-		<ul id="vm_selected_networks">
-
-		</ul>
-	</div>
-	<div>
-		<label>BlockStorages</label>
-		<input id="vm_block_storage_add" type="button" value="ADD">
-		<div>
-			<label>BS Name</label>
-			<input id="vm_bs_name" type="text">
-		</div>
-		<div>
-			<label>Image Name</label>
-			<input id="vm_bs_image_name" type="text">
-		</div>
-		<div>
-			<label>Tag</label>
-			<input id="vm_bs_tag" type="text">
-		</div>
-		<div>
-			<label>RequestSize(GB)</label>
-			<input id="vm_bs_request_bytes" type="text">
-		</div>
-		<div>
-			<label>LimitSize(GB)</label>
-			<input id="vm_bs_limit_bytes" type="text">
-		</div>
-		<ul id="vm_block_storages"></ul>
-	</div>
-	<div>
-		<input id="vm_delete" type="button" value="削除">
-	</div>
-
-</div>
+<div class="output_area">
+	<input id="gen" type="button" value="gen">
 	<textarea id="output"></textarea>
+</div>
 	<script>
 
 var ns = [];
