@@ -140,8 +140,9 @@ let drawRect = () => {
 		ctx.fillRect(v.x - vmimg.width / 2, v.y - vmimg.height / 2, vmimg.width, vmimg.height);
 
 		ctx.fillStyle = 'rgb(128,128,128)';
-		ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 5, vmimg.width - 10, 10);
-		ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 20, vmimg.width - 10, 10);
+		for(var k = 0; k < Math.min(v.limit_cpu_milli_core / 1000, 6); k++) {
+			ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 5 + k * 10, vmimg.width - 10, 5);
+		}
 
 		ctx.fillStyle = 'rgb(0, 0, 0)';
 		ctx.font = '16px Arial';
@@ -275,6 +276,7 @@ el("vm_name").addEventListener('input', (e) => {
 
 el("vm_limit_cpu_milli_core").addEventListener('input', (e) => {
 	vms[selectedVm].limit_cpu_milli_core = e.target.value * 1000;
+	drawRect();
 });
 
 el("vm_limit_memory_bytes").addEventListener('input', (e) => {
