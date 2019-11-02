@@ -70,8 +70,34 @@
 		</ul>
 	</div>
 	<div>
+		<label>BlockStorages</label>
+		<input id="vm_block_storage_add" type="button" value="ADD">
+		<div>
+			<label>BS Name</label>
+			<input id="vm_bs_name" type="text">
+		</div>
+		<div>
+			<label>Image Name</label>
+			<input id="vm_bs_image_name" type="text">
+		</div>
+		<div>
+			<label>Tag</label>
+			<input id="vm_bs_tag" type="text">
+		</div>
+		<div>
+			<label>RequestSize(GB)</label>
+			<input id="vm_bs_request_bytes" type="text">
+		</div>
+		<div>
+			<label>LimitSize(GB)</label>
+			<input id="vm_bs_limit_bytes" type="text">
+		</div>
+		<ul id="vm_block_storages"></ul>
+	</div>
+	<div>
 		<input id="vm_delete" type="button" value="削除">
 	</div>
+
 </div>
 	<textarea id="output"></textarea>
 	<script>
@@ -235,6 +261,7 @@ function VirtualMachine(_x, _y) {
 	this.request_memory_bytes = 1;
 	this.limit_memory_bytes = 512 * 1024 * 1024;
 	this.nics = [];
+	this.block_storages = [];
 }
 
 let vm_network_detach = (i) => {
@@ -242,6 +269,11 @@ let vm_network_detach = (i) => {
 	openVirtualMachineProperties();
 	drawRect();
 };
+
+let vm_bs_detach = (i) => {
+	vms[selectedVm].block_storages.splice(i, 1);
+	openVirtualMachineProperties();
+}
 
 let openVirtualMachineProperties = () => {
 	let v = vms[selectedVm];
@@ -267,6 +299,18 @@ let openVirtualMachineProperties = () => {
 	}
 
 	el("vm_selected_networks").innerHTML = networks;
+
+	var block_storages = "";
+	for(var i = 0; i < v.block_storages.length; i++) {
+		let b = v.block_storages[i];
+		block_storages += "<li>" + b.name + "<button onClick='vm_bs_detach(" + i + ")'>x</button><ul>";
+		block_storages += "<li>Image:" + b.image_name + "</li>";
+		block_storages += "<li>Tag:" + b.tag + "</li>";
+		block_storages += "<li>RequestSize(GB): " + (b.request_bytes / 1024 / 1024 / 1024) + "</li>";
+		block_storages += "<li>LimitSize(GB):" + (b.limit_bytes / 1024 / 1024 / 1024) + "</li></ul></li>";
+	}
+
+	el("vm_block_storages").innerHTML = block_storages;
 };
 
 el("vm_name").addEventListener('input', (e) => {
@@ -300,6 +344,27 @@ el("vm_delete").addEventListener('click', () => {
 		selectedVm = -1;
 		drawRect();
 	}
+});
+
+function BlockStorage(name, image_name, tag, request_bytes, limit_bytes) {
+	this.name = name;
+	this.image_name = image_name;
+	this.tag = tag;
+	this.request_bytes = request_bytes;
+	this.limit_bytes = limit_bytes;
+}
+
+el("vm_block_storage_add").addEventListener('click', () => {
+	var name = el("vm_bs_name").value;
+	var image_name = el("vm_bs_image_name").value;
+	var tag = el("vm_bs_tag").value;
+	var request_bytes = el("vm_bs_request_bytes").value * 1024 * 1024 * 1024;
+	var limit_bytes = el("vm_bs_limit_bytes").value * 1024 * 1024 * 1024;
+
+	var bs = new BlockStorage(name, image_name, tag, request_bytes, limit_bytes);
+	vms[selectedVm].block_storages[vms[selectedVm].block_storages.length] = bs;
+
+	openVirtualMachineProperties();
 });
 function ApplyNetwork(n) {
 	this.type = "Network";
@@ -414,13 +479,22 @@ canvas.addEventListener('mousedown', (e) => {
 		ns[ns.length] = new Network(x, y);
 		selectedNet = ns.length-1;
 		selectedVm = -1;
+		selectedBs = -1;
 		openNetProperties();
 		break;
 	case 'vm':
 		vms[vms.length] = new VirtualMachine(x, y);
 		selectedVm = vms.length - 1;
 		selectedNet = -1;
+		selectedBs = -1;
 		openVirtualMachineProperties();
+		break;
+	case 'bs':
+		bss[bss.length] = new BlockStorage(x, y);
+		selectedBs = bss.length - 1;
+		selectedNet = -1;
+		selectedVm= -1;
+		openBlockStorageProperties();
 		break;
 	}
 	drawRect();
