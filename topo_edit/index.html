@@ -455,6 +455,8 @@ function CreateVirtualMachine(v) {
 		var name = "";
 		if(v.block_storages[i].image_name != "") {
 			name = "gbs-";
+		}else {
+			name = "cbs-";
 		}
 		this.depends_on[this.depends_on.length] = name + v.block_storages[i].name; 
 	}
@@ -479,6 +481,19 @@ function GenerateBlockStorage(b) {
 	this.depends_on = [];
 	this.depends_on[this.depends_on.length] = "pbs-" + b.name;
 } 
+
+function CreateBlockStorage(b) {
+	this.type = "BlockStorage";
+	this.action = "CreateBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	this.args.request_bytes = b.request_bytes;
+	this.args.limit_bytes = b.limit_bytes;
+	this.args.annotations = {};
+	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "pbs-" + b.name;
+}
 
 function DeleteVirtualMachine(v) {
 	this.type = "VirtualMachine";
@@ -570,6 +585,9 @@ el("gen").addEventListener('click', () => {
 			if(b.image_name != "") {
 				bs = new GenerateBlockStorage(b);
 				name = "gbs-";
+			}else {
+				bs = new CreateBlockStorage(b);
+				name = "cbs-";
 			}
 
 			if(bs === null) continue;
