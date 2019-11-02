@@ -483,6 +483,7 @@ function DeleteNetwork(n) {
 			}
 		}
 	}
+	if(this.depends_on.length == 0) delete this.depends_on;
 	this.ignore_error = true;
 }
 
