@@ -387,6 +387,8 @@ function ApplyNetwork(n) {
 	if(n.annotations['n0core/provisioning/virtual_machine/vlan_id'] != "") {
 		this.args.annotations = n.annotations;
 	}
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "dn-" + n.name;
 	this.ignore_error = true;
 }
 
