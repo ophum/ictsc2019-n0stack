@@ -18,6 +18,7 @@
 </style>
 <body onload="init()">
 
+<input id="node_name" type="text">
 <select id="item">
 	<option value="net">Network</option>
 	<option value="vm">VirtualMachine</option>
@@ -199,10 +200,14 @@ var dragging_net = -1;
 var dragging_vm = -1;
 var selectedNet = -1;
 var selectedVm = -1;
+var node_name = "";
 let el = (id) => {
 	return document.getElementById(id);
 };
 
+el("node_name").addEventListener('input', (e) => {
+	node_name = e.target.value;
+});
 function Network(_x, _y) {
 	this.x = _x;
 	this.y = _y;
@@ -408,6 +413,19 @@ function CreateVirtualMachine(v) {
 
 }
 
+function GenerateBlockStorage(b) {
+	this.type = "Image";
+	this.action = "GenerateBlockStorage";
+	this.args = new Object();
+	this.args.block_storage_name = b.name;
+	this.args.image_name = b.image_name;
+	this.args.tag = b.tag;
+	this.args.request_bytes = b.request_bytes;
+	this.args.limit_bytes = b.limit_bytes;
+	this.args.annotations = {};
+	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
+} 
+
 el("gen").addEventListener('click', () => {
 	var output = "";
 	for(var i = 0; i < ns.length; i++) {
@@ -420,6 +438,25 @@ el("gen").addEventListener('click', () => {
 		if(vms.length == 0) output += json + '\n'; 
 		else output += json + ',\n';
 		console.log(json);
+	}
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.block_storages.length; j++) {
+			var b = v.block_storages[i];
+			var bs = null;
+			var name = "";
+			if(b.image_name != "") {
+				bs = new GenerateBlockStorage(b);
+				name = "gbs-";
+			}
+
+			if(bs === null) continue;
+			name += b.name;
+			var obj = {};
+			obj[name] = bs;
+			let json = JSON.stringify(obj);
+			output += json + ',\n';
+		}
 	}
 	for(var i = 0; i < vms.length; i++) {
 		var v = vms[i];
