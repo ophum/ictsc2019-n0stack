@@ -467,6 +467,23 @@ function PurgeBlockStorage(b) {
 	this.ignore_error = true;
 }
 
+function DeleteNetwork(n) {
+	this.type = "Network";
+	this.action = "DeleteNetwork";
+	this.args = new Object();
+	this.args.name = n.name;
+	this.depends_on = [];
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.nics.length; j++) {
+			if(n.name == v.nics[j].network_name) {
+				this.depends_on[this.depends_on.length] = "dvm-" + v.name;
+			}
+		}
+	}
+	this.ignore_error = true;
+}
+
 el("gen").addEventListener('click', () => {
 	var output = "";
 	var obj = new Object();
@@ -489,6 +506,13 @@ el("gen").addEventListener('click', () => {
 			name = "pbs-" + b.name;
 			obj[name] = pbs;
 		}
+	}
+
+	for(var i = 0; i < ns.length; i++) {
+		var n = ns[i];
+		var dn = new DeleteNetwork(n);
+		var name = "dn-" + n.name;
+		obj[name] = dn;
 	}
 
 	for(var i = 0; i < ns.length; i++) {
