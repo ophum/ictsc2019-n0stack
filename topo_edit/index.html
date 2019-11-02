@@ -601,7 +601,7 @@ el("gen").addEventListener('click', () => {
 		var name = "cvm-" + v.name;
 		obj[name] = cvm;
 	}
-	output = JSON.stringify(obj);
+	output = JSON.stringify(obj, null, 2);
 	el("output").value = output;
 });
 canvas.addEventListener('mousedown', (e) => {
