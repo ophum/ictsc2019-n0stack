@@ -388,6 +388,7 @@ canvas.addEventListener('mousedown', (e) => {
 			dragging_net = i;
 			relX = v.x - x;
 			relY = v.y - y;
+			drawRect();
 			return;
 		}
 	}
@@ -401,6 +402,7 @@ canvas.addEventListener('mousedown', (e) => {
 			dragging_vm = i;
 			relX = v.x - x;
 			relY = v.y - y;
+			drawRect();
 			return;
 		}
 	}
