@@ -404,11 +404,12 @@ function CreateVirtualMachine(v) {
 	this.args.annotations = {};
 	this.args.annotations['n0core/provisioning/virtual_machine/request_node_name'] = node_name;
 	this.args.nics = [];
-	this.args.depends_on = [];
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "dvm-" + v.name;
 	for(var i = 0; i < v.nics.length; i++) {
 		this.args.nics[i] = {};
 		this.args.nics[i].network_name = v.nics[i]['network_name'];
-		this.args.depends_on[this.args.depends_on.length] = "an-" + v.nics[i]['network_name'];
+		this.depends_on[this.depends_on.length] = "an-" + v.nics[i]['network_name'];
 		if(v.nics[i]['ipv4_address'] != "") {
 			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
 		}
@@ -421,12 +422,12 @@ function CreateVirtualMachine(v) {
 		if(v.block_storages[i].image_name != "") {
 			name = "gbs-";
 		}
-		this.args.depends_on[this.args.depends_on.length] = name + v.block_storages[i].name; 
+		this.depends_on[this.depends_on.length] = name + v.block_storages[i].name; 
 	}
 	
 	if(this.args.nics.length == 0) delete this.args.nics;
 	if(this.args.block_storage_names == 0) delete this.args.block_storage_names;
-	if(this.args.depends_on == 0) delete this.args.depends_on;
+	if(this.depends_on == 0) delete this.args.depends_on;
 
 }
 
