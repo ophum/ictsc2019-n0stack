@@ -442,6 +442,8 @@ function GenerateBlockStorage(b) {
 	this.args.limit_bytes = b.limit_bytes;
 	this.args.annotations = {};
 	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "pbs-" + b.name;
 } 
 
 function DeleteVirtualMachine(v) {
