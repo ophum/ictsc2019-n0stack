@@ -437,6 +437,9 @@ function CreateVirtualMachine(v) {
 	this.args.request_memory_bytes = v.request_memory_bytes;
 	this.args.limit_memory_bytes = v.limit_memory_bytes;
 	this.args.annotations = {};
+	if('annotations' in v) {
+		this.args.annotations = v.annotations;
+	}
 	this.args.annotations['n0core/provisioning/virtual_machine/request_node_name'] = node_name;
 	this.args.nics = [];
 	this.depends_on = [];
@@ -614,10 +617,16 @@ el("load").addEventListener('click', () => {
 	vms = [];
 	var nsx = 100;
 	var nsy = 200;
+
+	var vmx = 200;
+	var vmy = 200;
+	var cvms = [];
+	var gbss = [];
+
 	for(k in obj) {
 		var v = obj[k]
 		switch(v.action) {
-		case "DeleteNetwork": case "DeleteVirtualMachine": case "DeleteBlockStorage": case "PurgeBlockStorage": continue;
+		case "DeleteNetwork": case "DeleteVirtualMachine": case "DeleteBlockStorage": case "PurgeBlockStorage": break;
 		case "ApplyNetwork":
 			ns[ns.length] = new Network(nsx, nsy);
 
@@ -641,9 +650,71 @@ el("load").addEventListener('click', () => {
 			if('annotations' in v.args) {
 				ns[s].annotations = v.args.annotations;
 			} 
+			break;
+		case "CreateVirtualMachine":
+			cvms[cvms.length] = v;
+			
+			break;
+		case "GenerateBlockStorage":
+		case "CreateBlockStorage":
+			gbss[gbss.length] = v;
 		}
-		console.log(v);
-	} 
+	}
+	var bst = {};
+	for(var i = 0; i < cvms.length; i++) {
+		var v = cvms[i];
+		vms[vms.length] = new VirtualMachine(vmx, vmy);
+
+		vmx += 50;
+		if(vmx >= 800) {
+			vmx = 100;
+			vmy += 50;
+			if(vmy > 750) {
+				vmy = 750;
+			}
+		}
+
+		s = vms.length - 1;
+		vms[s].name = v.args.name;
+
+		if('annotations' in v.args) {
+			vms[s].annotations = v.args.annotations;
+		}
+		vms[s].request_cpu_milli_core = v.args.request_cpu_milli_core;
+		vms[s].limit_cpu_milli_core = v.args.limit_cpu_milli_core;
+		vms[s].request_memory_bytes = v.args.request_memory_bytes;
+		vms[s].limit_memory_bytes = v.args.limit_memory_bytes
+		vms[s].block_storages = [];
+
+		if('nics' in v.args) {
+			vms[s].nics = v.args.nics;
+		}
+		if('block_storage_names' in v.args) {
+			for(var j = 0; j < v.args.block_storage_names.length; j++) {
+				bst[v.args.block_storage_names[j]] = s;
+			}
+		}
+	}
+
+	for(var i = 0; i < gbss.length; i++) {
+		var v = gbss[i];
+		var name = "";
+		var image_name = "";
+		var tag = "";
+		if(v.type == "Image") {
+			name = v.args.block_storage_name;
+			image_name = v.args.image_name;
+			tag = v.args.tag;
+		}else {
+			name = v.args.name;
+		}
+		var request_bytes = v.args.request_bytes;
+		var limit_bytes = v.args.limit_bytes;
+		var s = bst[name];
+		
+		var bs = new BlockStorage(name, image_name, tag, request_bytes, limit_bytes);
+		vms[s].block_storages[vms[s].block_storages.length] = bs;
+	}
 	drawRect();
 });
 
