@@ -23,7 +23,8 @@ import (
 	"github.com/n0stack/n0stack/n0core/pkg/datastore/lock"
 	"github.com/n0stack/n0stack/n0core/pkg/driver/cloudinit/configdrive"
 	"github.com/n0stack/n0stack/n0core/pkg/driver/iproute2"
-	"github.com/n0stack/n0stack/n0core/pkg/driver/qemu"
+	//"github.com/n0stack/n0stack/n0core/pkg/driver/qemu"
+	"github.com/ophum/ictsc2019-n0stack/qemu"
 	img "github.com/n0stack/n0stack/n0core/pkg/driver/qemu_img"
 	grpcutil "github.com/n0stack/n0stack/n0core/pkg/util/grpc"
 	netutil "github.com/n0stack/n0stack/n0core/pkg/util/net"
@@ -205,7 +206,7 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 					if err != nil {
 						return errors.Wrapf(err, "Hardware address '%s' is invalid on netdev '%s'", nd.HardwareAddress, nd.Name)
 					}
-					if err := q.AttachTap(nd.Name, t.Name(), hw); err != nil {
+					if err := q.AttachTap(nd.Name, t.Name(), hw, vcpus); err != nil {
 						return errors.Wrapf(err, "Failed to attach tap")
 					}
 
