@@ -38,7 +38,6 @@ func (q *Qemu) tapNetdevAdd(id, ifname string, vcpus uint32) error {
 		Script     string `json:"script"`
 		Downscript string `json:"downscript"`
 		Queues     string `json:"queues"`
-		Mq         string `json:"mq"`
 	}{
 		id,
 		"tap",
@@ -47,7 +46,6 @@ func (q *Qemu) tapNetdevAdd(id, ifname string, vcpus uint32) error {
 		"no",
 		"no",
 		fmt.Sprintf("%d", vcpus),
-		"on",
 	}
 
 	bs, err := json.Marshal(map[string]interface{}{
@@ -74,6 +72,7 @@ func (q *Qemu) virtioNetPCIAdd(devID, netdevID string, mac net.HardwareAddr, vcp
 		Bus     string `json:"bus"`
 		Mac     string `json:"mac"`
 		Vectors string `json:"vectors"`
+		Mq      string `json:"mq"`
 	}{
 		"virtio-net-pci",
 		devID,
@@ -81,6 +80,7 @@ func (q *Qemu) virtioNetPCIAdd(devID, netdevID string, mac net.HardwareAddr, vcp
 		"pci.0",
 		mac.String(),
 		fmt.Sprintf("%d", 2*vcpus+2),
+		"on",
 	}
 
 	bs, err := json.Marshal(map[string]interface{}{
