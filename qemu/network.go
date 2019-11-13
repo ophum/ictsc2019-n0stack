@@ -37,7 +37,8 @@ func (q *Qemu) tapNetdevAdd(id, ifname string, vcpus uint32) error {
 		Vhost      bool   `json:"vhost"`
 		Script     string `json:"script"`
 		Downscript string `json:"downscript"`
-		Queues string `json:"queues"`
+		Queues     string `json:"queues"`
+		Mq         string `json:"mq"`
 	}{
 		id,
 		"tap",
@@ -46,6 +47,7 @@ func (q *Qemu) tapNetdevAdd(id, ifname string, vcpus uint32) error {
 		"no",
 		"no",
 		fmt.Sprintf("%d", vcpus),
+		"on",
 	}
 
 	bs, err := json.Marshal(map[string]interface{}{
@@ -66,11 +68,11 @@ func (q *Qemu) tapNetdevAdd(id, ifname string, vcpus uint32) error {
 
 func (q *Qemu) virtioNetPCIAdd(devID, netdevID string, mac net.HardwareAddr, vcpus uint32) error {
 	cmd := struct {
-		Driver string `json:"driver"`
-		ID     string `json:"id"`
-		Netdev string `json:"netdev"`
-		Bus    string `json:"bus"`
-		Mac    string `json:"mac"`
+		Driver  string `json:"driver"`
+		ID      string `json:"id"`
+		Netdev  string `json:"netdev"`
+		Bus     string `json:"bus"`
+		Mac     string `json:"mac"`
 		Vectors string `json:"vectors"`
 	}{
 		"virtio-net-pci",
@@ -78,7 +80,7 @@ func (q *Qemu) virtioNetPCIAdd(devID, netdevID string, mac net.HardwareAddr, vcp
 		netdevID,
 		"pci.0",
 		mac.String(),
-		fmt.Sprintf("%d", 2 * vcpus + 2),
+		fmt.Sprintf("%d", 2*vcpus+2),
 	}
 
 	bs, err := json.Marshal(map[string]interface{}{
