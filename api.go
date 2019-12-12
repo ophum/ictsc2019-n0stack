@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
+	"strings"
+	//"path/filepath"
 	"runtime/debug"
 	"syscall"
 
-	"github.com/n0stack/n0stack/n0core/pkg/datastore/embed"
+	//"github.com/n0stack/n0stack/n0core/pkg/datastore/embed"
+	"github.com/n0stack/n0stack/n0core/pkg/datastore/etcd"
+
 	ictscnet "github.com/ophum/ictsc2019-n0stack/network"
 
 	"github.com/n0stack/n0stack/n0core/pkg/api/deployment/image"
@@ -48,8 +51,9 @@ func OutputRecoveryLog(p interface{}) (err error) {
 }
 
 func ServeAPI(ctx *cli.Context) error {
-	baseDir := ctx.String("base-directory")
-	dbDir := filepath.Join(baseDir, "db")
+	etcdEndpoints := strings.Split(ctx.String("etcd-endpoints"), ",")
+	//baseDir := ctx.String("base-directory")
+	//dbDir := filepath.Join(baseDir, "db")
 
 	lis, err := net.Listen("tcp", fmt.Sprintf("%s:%d", ctx.String("bind-address"), ctx.Int("bind-port")))
 	if err != nil {
@@ -64,7 +68,8 @@ func ServeAPI(ctx *cli.Context) error {
 	}
 	defer conn.Close()
 
-	ds, err := embed.NewEmbedDatastore(dbDir)
+	//ds, err := embed.NewEmbedDatastore(dbDir)
+	ds, err := etcd.NewEtcdDatastore(etcdEndpoints)
 	if err != nil {
 		return err
 	}
