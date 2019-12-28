@@ -98,6 +98,10 @@ func main() {
 							Name:  "vlan-external-interface",
 							Usage: "external interface",
 						},
+						cli.Int64Flag{
+							Name:  "parallel-limit",
+							Value: int64(1),
+						},
 					},
 				},
 			},
