@@ -599,11 +599,18 @@ el("gen").addEventListener('click', () => {
 			obj[name] = bs;
 		}
 	}
+	
+	var depends_on_vm = "";
 	for(var i = 0; i < vms.length; i++) {
 		var v = vms[i];
+		
 		var cvm = new CreateVirtualMachine(v);
 		var name = "cvm-" + v.name;
+		if(depends_on_vm != "") {
+			cvm.depends_on[cvm.depends_on.length] = depends_on_vm;
+		}
 		obj[name] = cvm;
+		depends_on_vm =  name;
 	}
 	output = JSON.stringify(obj, null, 2);
 	el("output").value = output;
