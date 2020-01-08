@@ -121,6 +121,8 @@ func ServeAgent(ctx *cli.Context) error {
 
 	vlanInterface := ctx.String("vlan-external-interface")
 
+	parallelLimit := ctx.Int64("parallel-limit")
+
 	location := strings.Split(ctx.String("location"), "/")
 	if len(location) != 5 {
 		return fmt.Errorf("invalid argument 'location'")
@@ -136,7 +138,7 @@ func ServeAgent(ctx *cli.Context) error {
 	unit := uint32(u)
 
 	bvm := filepath.Join(baseDirectory, "virtual_machine")
-	vma, err := vmictsc.CreateVirtualMachineAgent(bvm, vlanInterface, nodeAPI)
+	vma, err := vmictsc.CreateVirtualMachineAgent(bvm, vlanInterface, nodeAPI, parallelLimit)
 	if err != nil {
 		return err
 	}
