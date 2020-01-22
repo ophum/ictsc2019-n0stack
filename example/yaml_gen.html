@@ -153,15 +153,22 @@ let genVirtualMachine = () => {
 		}
 	});
 
-	o += "    login_username: " + login_username + "\n";
-	o += "    ssh_authorized_keys:\n";
-	SshAuthorizedKeys.split(/\n/).forEach((key) => {
-		o += "      - " + key + "\n";
-	});
-	o += "  depends_on:\n";
-	depends_on.split(/\n/).forEach((task) => {
-		o += "    - " + task + "\n";
-	});
+	if(login_username != "") {
+		o += "    login_username: " + login_username + "\n";
+	}
+
+	if(SshAuthorizedKeys != "") {
+		o += "    ssh_authorized_keys:\n";
+		SshAuthorizedKeys.split(/\n/).forEach((key) => {
+			o += "      - " + key + "\n";
+		});
+	}
+	if(depends_on != "") {
+		o += "  depends_on:\n";
+		depends_on.split(/\n/).forEach((task) => {
+			o += "    - " + task + "\n";
+		});
+	}
 	output.value = output.value + o;
 }
 </script>

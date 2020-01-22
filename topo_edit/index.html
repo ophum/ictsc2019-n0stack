@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>test</title>
+	</head>
+<style>
+
+	.container {
+		width: 100%;
+		height: auto;
+		display: flex;
+		flex-direction: row;
+	}
+	.output_area {
+		width: 100%;
+		height: auto;
+		display:flex;
+		flex-direction: column;
+	}
+
+	.output_area textarea {
+		height: 480px;
+	}
+
+	.properties {
+		width: 400px;
+		height: auto;
+	}
+	#canvas {
+		background: #ccc;
+	}
+
+	#net_properties {
+		display: none;
+	}
+
+	#vm_properties {
+		display: none;
+	}
+
+</style>
+<body onload="init()">
+
+<div class="container">
+	<canvas id="canvas" width="800" height="600"></canvas>
+	<div class="properties">
+		<div>
+			<label>Node Name</label>
+			<input id="node_name" type="text" placeholder="node name">
+		</div>
+		<div>
+			<label>Object</label>
+			<select id="item" multiple size=2>
+				<option value="net" selected>Network</option>
+				<option value="vm">VirtualMachine</option>
+			</select>
+		</div>
+		<div id="net_properties">
+			<div>
+				<input id="net_delete" type="button" value="削除">
+			</div>
+			<div>
+				<label>Network Name</label>
+				<input id="net_name" type="text">
+			</div>
+			<div>
+				<label>Ipv4_cidr</label>
+				<input id="net_ipv4_cidr" type="text">
+			</div>
+			<div>
+				<label>Ipv6_cidr</label>
+				<input id="net_ipv6_cidr" type="text">
+			</div>
+			<div>
+				<label>Vlan ID</label>
+				<input id="net_vlanid" type="text">
+			</div>
+		</div>
+
+		<div id="vm_properties">
+			<div>
+				<input id="vm_delete" type="button" value="削除">
+			</div>
+			<div>
+				<label>VM Name</label>
+				<input id="vm_name" type="text">
+			</div>
+			<div>
+				<label>Vcpus</label>
+				<input id="vm_limit_cpu_milli_core" type="text">
+			</div>
+			<div>
+				<label>Memory(MB)</label>
+				<input id="vm_limit_memory_bytes" type="text">
+			</div>
+			<div>
+				<label>Networks</label>
+				<select id="vm_select_networks">
+				</select>
+				<input id="vm_select_network_add" type="button" value="Attach">
+				<ul id="vm_selected_networks">
+
+				</ul>
+			</div>
+			<div>
+				<label>BlockStorages</label>
+				<input id="vm_block_storage_add" type="button" value="Add">
+				<div>
+					<label>BS Name</label>
+					<input id="vm_bs_name" type="text">
+				</div>
+				<div>
+					<label>Image Name</label>
+					<input id="vm_bs_image_name" type="text">
+				</div>
+				<div>
+					<label>Tag</label>
+					<input id="vm_bs_tag" type="text">
+				</div>
+				<div>
+					<label>RequestSize(GB)</label>
+					<input id="vm_bs_request_bytes" type="text">
+				</div>
+				<div>
+					<label>LimitSize(GB)</label>
+					<input id="vm_bs_limit_bytes" type="text">
+				</div>
+				<ul id="vm_block_storages"></ul>
+			</div>
+
+		</div>
+	</div>
+</div>
+<div class="output_area">
+	<input id="gen" type="button" value="gen">
+	<input id="load" type="button" value="load">
+	<textarea id="output"></textarea>
+</div>
+	<script>
+
+var ns = [];
+var vms = [];
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext('2d');
+var objX, objY;
+var objWidth, objHeight;
+
+function netImage() {
+	this.width = 50;
+	this.height = 25;
+}
+
+function vmImage() {
+	this.width = 50;
+	this.height = 70;
+}
+
+var netimg = new netImage();
+var vmimg = new vmImage();
+
+let init = () => {
+	objWidth = 50;
+	objHeight = 50;
+	
+
+	objX = canvas.width / 2 - objWidth / 2;
+	objY = canvas.height/ 2 - objHeight / 2;
+
+	drawRect();
+};
+
+let getNetSuffix = (name) => {
+	for(var i = 0; i < ns.length; i++) {
+		if(ns[i].name == name) return i;
+	}
+
+	return -1;
+};
+let drawRect = () => {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	for(var i = 0; i < vms.length; i++) {
+		v = vms[i];
+		for(var j = 0; j < v.nics.length; j++) {
+			var s = getNetSuffix(v.nics[j]['network_name']);
+			var nx = ns[s].x;
+			var ny = ns[s].y;
+
+			ctx.beginPath();
+			ctx.moveTo(v.x, v.y);
+			ctx.lineTo(nx, ny);
+			ctx.closePath();
+			ctx.stroke();
+		}
+		if(i == selectedVm) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(v.x - vmimg.width / 2  - 5, v.y - vmimg.height / 2 - 5, vmimg.width + 10, vmimg.height + 10);
+		}
+
+		ctx.fillStyle = 'rgb(0, 128, 128)';
+		ctx.fillRect(v.x - vmimg.width / 2, v.y - vmimg.height / 2, vmimg.width, vmimg.height);
+
+		ctx.fillStyle = 'rgb(128,128,128)';
+		for(var k = 0; k < Math.min(v.limit_cpu_milli_core / 1000, 6); k++) {
+			ctx.fillRect(v.x - vmimg.width / 2 + 5, v.y - vmimg.height / 2 + 5 + k * 10, vmimg.width - 10, 5);
+		}
+
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.font = '16px Arial';
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + vmimg.height / 2 + 16);
+		
+	}
+
+	for(var i = 0; i < ns.length; i++) {
+		v = ns[i];
+		if(i == selectedNet) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(v.x - netimg.width / 2  - 5, v.y - netimg.height/ 2 - 5, netimg.width + 10, netimg.height + 10);
+		}
+		ctx.fillStyle = 'rgb(0, 128, 0)';
+		ctx.fillRect(v.x - netimg.width / 2, v.y - netimg.height / 2, netimg.width, netimg.height);
+
+
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.font = '16px Arial';
+		ctx.fillText(v.name, v.x - ctx.measureText(v.name).width / 2, v.y + netimg.height / 2 + 16);
+		ctx.fillText(v.ipv4_cidr, v.x - ctx.measureText(v.ipv4_cidr).width / 2, v.y + netimg.height / 2 + 32);
+	}
+
+};
+
+var relX, relY;
+var dragging_net = -1;
+var dragging_vm = -1;
+var selectedNet = -1;
+var selectedVm = -1;
+var node_name = "";
+let el = (id) => {
+	return document.getElementById(id);
+};
+
+el("node_name").addEventListener('input', (e) => {
+	node_name = e.target.value;
+});
+function Network(_x, _y) {
+	this.x = _x;
+	this.y = _y;
+	this.name = "";
+	this.ipv4_cidr = "";
+	this.ipv6_cidr = "";
+	this.annotations = {
+		"n0core/provisioning/virtual_machine/vlan_id": "",
+	};
+}
+
+let openNetProperties = () => {
+	let n = ns[selectedNet];
+	el("net_properties").style.display = 'block';
+	el("vm_properties").style.display = 'none';
+	el("net_name").value = n.name;
+	el("net_ipv4_cidr").value = n.ipv4_cidr;
+	el("net_ipv6_cidr").value = n.ipv6_cidr;
+	el("net_vlanid").value = n.annotations['n0core/provisioning/virtual_machine/vlan_id'];
+
+};
+
+el("net_name").addEventListener('input', (e) => {
+	ns[selectedNet].name = e.target.value;
+	drawRect();
+});
+
+el("net_ipv4_cidr").addEventListener('input', (e) => {
+	ns[selectedNet].ipv4_cidr = e.target.value;
+	drawRect();
+});
+
+el("net_ipv6_cidr").addEventListener('input', (e) => {
+	ns[selectedNet].ipv6_cidr = e.target.value;
+	drawRect();
+});
+
+el("net_vlanid").addEventListener('input', (e) => {
+	ns[selectedNet].annotations['n0core/provisioning/virtual_machine/vlan_id'] = e.target.value;
+	drawRect();
+});
+
+el("net_delete").addEventListener('click', () => {
+	if(selectedNet >= 0) {
+		ns.splice(selectedNet, 1);
+		selectedNet = -1;
+		drawRect();
+	}
+});
+function VirtualMachine(_x, _y) {
+	this.x = _x;
+	this.y = _y;
+	this.name = "";
+	this.request_cpu_milli_core = 10;
+	this.limit_cpu_milli_core = 1000; 
+	this.request_memory_bytes = 1;
+	this.limit_memory_bytes = 512 * 1024 * 1024;
+	this.nics = [];
+	this.block_storages = [];
+}
+
+let vm_network_detach = (i) => {
+	vms[selectedVm].nics.splice(i, 1);
+	openVirtualMachineProperties();
+	drawRect();
+};
+
+let vm_bs_detach = (i) => {
+	vms[selectedVm].block_storages.splice(i, 1);
+	openVirtualMachineProperties();
+}
+
+let openVirtualMachineProperties = () => {
+	let v = vms[selectedVm];
+
+	el("net_properties").style.display = 'none';
+	el("vm_properties").style.display = 'block';
+
+	el("vm_name").value = v.name;
+	el("vm_limit_cpu_milli_core").value = v.limit_cpu_milli_core / 1000;
+	el("vm_limit_memory_bytes").value = v.limit_memory_bytes / 1024 / 1024;
+
+	var select_networks = "";
+	for(var i = 0; i < ns.length; i++) {
+		let n = ns[i];
+		select_networks += "<option value='" + i + "'>" + n.name + " | " + n.ipv4_cidr + " | " + n.ipv6_cidr + " | " + n.annotations["n0core/provisioning/virtual_machine/vlan_id"] + "</option>";
+	}
+	el("vm_select_networks").innerHTML = select_networks;
+
+	var networks = "";
+	for(var i = 0; i < v.nics.length; i++) {
+		let n = v.nics[i];
+		networks += "<li>" + n['network_name'] + "<button onClick='vm_network_detach(" + i + ")'>x</button></li>";
+	}
+
+	el("vm_selected_networks").innerHTML = networks;
+
+	var block_storages = "";
+	for(var i = 0; i < v.block_storages.length; i++) {
+		let b = v.block_storages[i];
+		block_storages += "<li>" + b.name + "<button onClick='vm_bs_detach(" + i + ")'>x</button><ul>";
+		block_storages += "<li>Image:" + b.image_name + "</li>";
+		block_storages += "<li>Tag:" + b.tag + "</li>";
+		block_storages += "<li>RequestSize(GB): " + (b.request_bytes / 1024 / 1024 / 1024) + "</li>";
+		block_storages += "<li>LimitSize(GB):" + (b.limit_bytes / 1024 / 1024 / 1024) + "</li></ul></li>";
+	}
+
+	el("vm_block_storages").innerHTML = block_storages;
+};
+
+el("vm_name").addEventListener('input', (e) => {
+	vms[selectedVm].name = e.target.value;
+	drawRect();
+});
+
+el("vm_limit_cpu_milli_core").addEventListener('input', (e) => {
+	vms[selectedVm].limit_cpu_milli_core = e.target.value * 1000;
+	drawRect();
+});
+
+el("vm_limit_memory_bytes").addEventListener('input', (e) => {
+	vms[selectedVm].limit_memory_bytes = e.target.value * 1024 * 1024;
+});
+
+el("vm_select_network_add").addEventListener('click', () => {
+	var i = el("vm_select_networks").value;
+	let nic = ns[i];
+
+	vms[selectedVm].nics[vms[selectedVm].nics.length] = {
+		"network_name": nic.name,
+	};
+	drawRect();
+	openVirtualMachineProperties();
+});
+
+el("vm_delete").addEventListener('click', () => {
+	if(selectedVm >= 0) {
+		vms.splice(selectedVm, 1);
+		selectedVm = -1;
+		drawRect();
+	}
+});
+
+function BlockStorage(name, image_name, tag, request_bytes, limit_bytes) {
+	this.name = name;
+	this.image_name = image_name;
+	this.tag = tag;
+	this.request_bytes = request_bytes;
+	this.limit_bytes = limit_bytes;
+}
+
+el("vm_block_storage_add").addEventListener('click', () => {
+	var name = el("vm_bs_name").value;
+	var image_name = el("vm_bs_image_name").value;
+	var tag = el("vm_bs_tag").value;
+	var request_bytes = el("vm_bs_request_bytes").value * 1024 * 1024 * 1024;
+	var limit_bytes = el("vm_bs_limit_bytes").value * 1024 * 1024 * 1024;
+
+	var bs = new BlockStorage(name, image_name, tag, request_bytes, limit_bytes);
+	vms[selectedVm].block_storages[vms[selectedVm].block_storages.length] = bs;
+
+	openVirtualMachineProperties();
+});
+function ApplyNetwork(n) {
+	this.type = "Network";
+	this.action ="ApplyNetwork";
+	
+	this.args = new Object();
+	this.args.name = n.name;
+	if(n.ipv4_cidr != "") {
+		this.args.ipv4_cidr = n.ipv4_cidr;
+	}
+	if(n.ipv6_cidr != "") {
+		this.args.ipv6_cidr = n.ipv6_cidr;
+	}
+	if(n.annotations['n0core/provisioning/virtual_machine/vlan_id'] != "") {
+		this.args.annotations = n.annotations;
+	}
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "dn-" + n.name;
+	this.ignore_error = true;
+}
+
+function CreateVirtualMachine(v) {
+	this.type = "VirtualMachine";
+	this.action = "CreateVirtualMachine";
+	this.args = new Object();
+	this.args.name = v.name;
+	this.args.request_cpu_milli_core = v.request_cpu_milli_core;
+	this.args.limit_cpu_milli_core = v.limit_cpu_milli_core;
+	this.args.request_memory_bytes = v.request_memory_bytes;
+	this.args.limit_memory_bytes = v.limit_memory_bytes;
+	this.args.annotations = {};
+	if('annotations' in v) {
+		this.args.annotations = v.annotations;
+	}
+	this.args.annotations['n0core/provisioning/virtual_machine/request_node_name'] = node_name;
+	this.args.nics = [];
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "dvm-" + v.name;
+	for(var i = 0; i < v.nics.length; i++) {
+		this.args.nics[i] = {};
+		this.args.nics[i].network_name = v.nics[i]['network_name'];
+		this.depends_on[this.depends_on.length] = "an-" + v.nics[i]['network_name'];
+		if(v.nics[i]['ipv4_address'] != "") {
+			this.args.nics[i].ipv4_address = v.nics[i]['ipv4_address'];
+		}
+	}
+
+	this.args.block_storage_names = [];
+	for(var i = 0; i < v.block_storages.length; i++) {
+		this.args.block_storage_names[i] = v.block_storages[i].name;
+		var name = "";
+		if(v.block_storages[i].image_name != "") {
+			name = "gbs-";
+		}else {
+			name = "cbs-";
+		}
+		this.depends_on[this.depends_on.length] = name + v.block_storages[i].name; 
+	}
+	
+	if(this.args.nics.length == 0) delete this.args.nics;
+	if(this.args.block_storage_names == 0) delete this.args.block_storage_names;
+	if(this.depends_on == 0) delete this.depends_on;
+
+}
+
+function GenerateBlockStorage(b) {
+	this.type = "Image";
+	this.action = "GenerateBlockStorage";
+	this.args = new Object();
+	this.args.block_storage_name = b.name;
+	this.args.image_name = b.image_name;
+	this.args.tag = b.tag;
+	this.args.request_bytes = b.request_bytes;
+	this.args.limit_bytes = b.limit_bytes;
+	this.args.annotations = {};
+	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "pbs-" + b.name;
+} 
+
+function CreateBlockStorage(b) {
+	this.type = "BlockStorage";
+	this.action = "CreateBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	this.args.request_bytes = b.request_bytes;
+	this.args.limit_bytes = b.limit_bytes;
+	this.args.annotations = {};
+	this.args.annotations['n0core/provisioning/block_storage/request_node_name'] = node_name;
+	this.depends_on = [];
+	this.depends_on[this.depends_on.length] = "pbs-" + b.name;
+}
+
+function DeleteVirtualMachine(v) {
+	this.type = "VirtualMachine";
+	this.action = "DeleteVirtualMachine";
+	this.args = new Object();
+	this.args.name = v.name;
+	this.ignore_error = true;
+}
+
+function DeleteBlockStorage(b, depends_on) {
+	this.type = "BlockStorage";
+	this.action = "DeleteBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	if(depends_on.length != 0) this.depends_on = depends_on;
+	this.ignore_error = true;
+}
+
+function PurgeBlockStorage(b) {
+	this.type = "BlockStorage";
+	this.action = "PurgeBlockStorage";
+	this.args = new Object();
+	this.args.name = b.name;
+	this.depends_on = ["dbs-" + b.name];
+	this.ignore_error = true;
+}
+
+function DeleteNetwork(n) {
+	this.type = "Network";
+	this.action = "DeleteNetwork";
+	this.args = new Object();
+	this.args.name = n.name;
+	this.depends_on = [];
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.nics.length; j++) {
+			if(n.name == v.nics[j].network_name) {
+				this.depends_on[this.depends_on.length] = "dvm-" + v.name;
+			}
+		}
+	}
+	if(this.depends_on.length == 0) delete this.depends_on;
+	this.ignore_error = true;
+}
+
+el("gen").addEventListener('click', () => {
+	var output = "";
+	var obj = new Object();
+
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		var dvm = new DeleteVirtualMachine(v);
+		var name = "dvm-" + v.name;
+		obj[name] = dvm;
+	}
+
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.block_storages.length; j++) {
+			var b = v.block_storages[j];
+			var dbs = new DeleteBlockStorage(b, ["dvm-" + v.name]);
+			var pbs = new PurgeBlockStorage(b);
+			var name = "dbs-" + b.name;
+			obj[name] = dbs;
+			name = "pbs-" + b.name;
+			obj[name] = pbs;
+		}
+	}
+
+	for(var i = 0; i < ns.length; i++) {
+		var n = ns[i];
+		var dn = new DeleteNetwork(n);
+		var name = "dn-" + n.name;
+		obj[name] = dn;
+	}
+
+	for(var i = 0; i < ns.length; i++) {
+		var n = ns[i];
+		var an = new ApplyNetwork(n);
+		var name = "an-" + n.name;
+		obj[name] = an;
+	}
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		for(var j = 0; j < v.block_storages.length; j++) {
+			var b = v.block_storages[j];
+			var bs = null;
+			var name = "";
+			if(b.image_name != "") {
+				bs = new GenerateBlockStorage(b);
+				name = "gbs-";
+			}else {
+				bs = new CreateBlockStorage(b);
+				name = "cbs-";
+			}
+
+			if(bs === null) continue;
+			name += b.name;
+			obj[name] = bs;
+		}
+	}
+	
+	var depends_on_vm = "";
+	for(var i = 0; i < vms.length; i++) {
+		var v = vms[i];
+		
+		var cvm = new CreateVirtualMachine(v);
+		var name = "cvm-" + v.name;
+		if(depends_on_vm != "") {
+			cvm.depends_on[cvm.depends_on.length] = depends_on_vm;
+		}
+		obj[name] = cvm;
+		depends_on_vm =  name;
+	}
+	output = JSON.stringify(obj, null, 2);
+	el("output").value = output;
+});
+
+el("load").addEventListener('click', () => {
+	let json = el("output").value;
+	var obj = JSON.parse(json);
+
+	ns = [];
+	vms = [];
+	var nsx = 100;
+	var nsy = 200;
+
+	var vmx = 200;
+	var vmy = 200;
+	var cvms = [];
+	var gbss = [];
+
+	for(k in obj) {
+		var v = obj[k]
+		switch(v.action) {
+		case "DeleteNetwork": case "DeleteVirtualMachine": case "DeleteBlockStorage": case "PurgeBlockStorage": break;
+		case "ApplyNetwork":
+			ns[ns.length] = new Network(nsx, nsy);
+
+			nsx += 50;
+			if(nsx >= 800) {
+				nsx = 100;
+				nsy += 50;
+				if(nsy > 750) {
+					nsy = 750;
+				}
+			}
+			s = ns.length - 1;
+			ns[s].name = v.args.name;
+			
+			if('ipv4_cidr' in v.args) {
+				ns[s].ipv4_cidr = v.args.ipv4_cidr;
+			}
+			if('ipv6_cidr' in v.args) {
+				ns[s].ipv6_cidr = v.args.ipv6_cidr;
+			}
+			if('annotations' in v.args) {
+				ns[s].annotations = v.args.annotations;
+			} 
+			break;
+		case "CreateVirtualMachine":
+			cvms[cvms.length] = v;
+			
+			break;
+		case "GenerateBlockStorage":
+		case "CreateBlockStorage":
+			gbss[gbss.length] = v;
+		}
+	}
+	var bst = {};
+	for(var i = 0; i < cvms.length; i++) {
+		var v = cvms[i];
+		vms[vms.length] = new VirtualMachine(vmx, vmy);
+
+		vmx += 50;
+		if(vmx >= 800) {
+			vmx = 100;
+			vmy += 50;
+			if(vmy > 750) {
+				vmy = 750;
+			}
+		}
+
+		s = vms.length - 1;
+		vms[s].name = v.args.name;
+
+		if('annotations' in v.args) {
+			vms[s].annotations = v.args.annotations;
+		}
+		vms[s].request_cpu_milli_core = v.args.request_cpu_milli_core;
+		vms[s].limit_cpu_milli_core = v.args.limit_cpu_milli_core;
+		vms[s].request_memory_bytes = v.args.request_memory_bytes;
+		vms[s].limit_memory_bytes = v.args.limit_memory_bytes
+		vms[s].block_storages = [];
+
+		if('nics' in v.args) {
+			vms[s].nics = v.args.nics;
+		}
+		if('block_storage_names' in v.args) {
+			for(var j = 0; j < v.args.block_storage_names.length; j++) {
+				bst[v.args.block_storage_names[j]] = s;
+			}
+		}
+	}
+
+	for(var i = 0; i < gbss.length; i++) {
+		var v = gbss[i];
+		var name = "";
+		var image_name = "";
+		var tag = "";
+		if(v.type == "Image") {
+			name = v.args.block_storage_name;
+			image_name = v.args.image_name;
+			tag = v.args.tag;
+		}else {
+			name = v.args.name;
+		}
+		var request_bytes = v.args.request_bytes;
+		var limit_bytes = v.args.limit_bytes;
+		var s = bst[name];
+		
+		var bs = new BlockStorage(name, image_name, tag, request_bytes, limit_bytes);
+		vms[s].block_storages[vms[s].block_storages.length] = bs;
+	}
+	drawRect();
+});
+
+canvas.addEventListener('mousedown', (e) => {
+
+	var offsetX = canvas.getBoundingClientRect().left;
+	var offsetY = canvas.getBoundingClientRect().top;
+
+	let x = e.clientX - offsetX;
+	let y = e.clientY - offsetY;
+
+	for(var i = 0; i < ns.length; i++) {
+		v = ns[i];
+		if(v.x - objWidth / 2 < x && (v.x + objWidth /  2) > x && v.y - objHeight / 2 < y && (v.y + objHeight / 2) >y) {
+			selectedNet = i;
+			selectedVm = -1;
+			openNetProperties();
+			dragging_vm = -1;
+			dragging_net = i;
+			relX = v.x - x;
+			relY = v.y - y;
+			drawRect();
+			return;
+		}
+	}
+	for(var i = 0; i < vms.length; i++) {
+		v = vms[i];
+		if(v.x - objWidth / 2 < x && (v.x + objWidth /  2) > x && v.y - objHeight / 2 < y && (v.y + objHeight / 2) >y) {
+			selectedVm = i;
+			selectedNet = -1;
+			openVirtualMachineProperties();
+			dragging_net = -1;
+			dragging_vm = i;
+			relX = v.x - x;
+			relY = v.y - y;
+			drawRect();
+			return;
+		}
+	}
+
+
+	let item = document.getElementById("item").value;
+	switch(item) {
+	case 'net':
+		ns[ns.length] = new Network(x, y);
+		selectedNet = ns.length-1;
+		selectedVm = -1;
+		selectedBs = -1;
+		openNetProperties();
+		break;
+	case 'vm':
+		vms[vms.length] = new VirtualMachine(x, y);
+		selectedVm = vms.length - 1;
+		selectedNet = -1;
+		selectedBs = -1;
+		openVirtualMachineProperties();
+		break;
+	case 'bs':
+		bss[bss.length] = new BlockStorage(x, y);
+		selectedBs = bss.length - 1;
+		selectedNet = -1;
+		selectedVm= -1;
+		openBlockStorageProperties();
+		break;
+	}
+	drawRect();
+}, false);
+
+canvas.addEventListener('mousemove', (e) => {
+	if(dragging_net >= 0) {
+		var offsetX = canvas.getBoundingClientRect().left;
+		var offsetY = canvas.getBoundingClientRect().top;
+
+		x = e.clientX - offsetX;
+		y = e.clientY - offsetY;
+
+		ns[dragging_net].x = x + relX;
+		ns[dragging_net].y = y + relY;
+
+		drawRect();
+
+	}else if(dragging_vm >= 0) {
+		var offsetX = canvas.getBoundingClientRect().left;
+		var offsetY = canvas.getBoundingClientRect().top;
+
+		x = e.clientX - offsetX;
+		y = e.clientY - offsetY;
+
+		vms[dragging_vm].x = x + relX;
+		vms[dragging_vm].y = y + relY;
+
+		drawRect();
+	}
+}, false);
+
+canvas.addEventListener('mouseup', (e) => {
+	dragging_net = dragging_vm = -1;
+}, false)
+	</script>
+</body>
+</html>
