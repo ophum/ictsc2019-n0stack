@@ -92,16 +92,11 @@ func (q Qemu) Boot() error {
 		return err
 	}
 
-	fmt.Println(s)
-		if err := q.m.SystemReset(); err != nil {
-			return err
-		}
-
-	
+	if s == StatusSuspended {
+		return q.m.SystemWakeup()
+	}
 
 	return nil
-	//fmt.Println(s)
-	//return q.m.SystemWakeup()
 }
 
 type Status int
