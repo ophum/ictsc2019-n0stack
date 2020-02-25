@@ -23,14 +23,17 @@ import (
 	stdapi "github.com/n0stack/n0stack/n0core/pkg/api/standard_api"
 	"github.com/n0stack/n0stack/n0core/pkg/datastore/lock"
 	"github.com/n0stack/n0stack/n0core/pkg/driver/cloudinit/configdrive"
-	"github.com/n0stack/n0stack/n0core/pkg/driver/iproute2"
-	"github.com/n0stack/n0stack/n0core/pkg/driver/qemu"
+
+	//"github.com/n0stack/n0stack/n0core/pkg/driver/iproute2"
+	"github.com/ophum/ictsc2019-n0stack/iproute2"
+	//"github.com/n0stack/n0stack/n0core/pkg/driver/qemu"
 	img "github.com/n0stack/n0stack/n0core/pkg/driver/qemu_img"
 	grpcutil "github.com/n0stack/n0stack/n0core/pkg/util/grpc"
 	netutil "github.com/n0stack/n0stack/n0core/pkg/util/net"
 	"github.com/n0stack/n0stack/n0proto.go/pkg/transaction"
 	ppool "github.com/n0stack/n0stack/n0proto.go/pool/v0"
 	pprovisioning "github.com/n0stack/n0stack/n0proto.go/provisioning/v0"
+	"github.com/ophum/ictsc2019-n0stack/qemu"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -205,7 +208,7 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 							}
 						}
 
-						t, err := iproute2.NewTap(netutil.StructLinuxNetdevName(nd.Name))
+						t, err := iproute2.NewTap(netutil.StructLinuxNetdevName(nd.Name), vcpus*2)
 						if err != nil {
 							return grpcutil.WrapGrpcErrorf(codes.Internal, "Failed to create tap '%s': err='%s'", nd.Name, err.Error())
 						}
@@ -224,7 +227,7 @@ func (a VirtualMachineICTSCAgent) BootVirtualMachine(ctx context.Context, req *v
 						if err != nil {
 							return errors.Wrapf(err, "Hardware address '%s' is invalid on netdev '%s'", nd.HardwareAddress, nd.Name)
 						}
-						if err := q.AttachTap(nd.Name, t.Name(), hw); err != nil {
+						if err := q.AttachTap(nd.Name, t.Name(), hw, vcpus*2, vcpus*2+2); err != nil {
 							return errors.Wrapf(err, "Failed to attach tap")
 						}
 
@@ -399,7 +402,7 @@ func (a VirtualMachineICTSCAgent) DeleteVirtualMachine(ctx context.Context, req 
 	}
 
 	for _, nd := range req.Netdevs {
-		t, err := iproute2.NewTap(netutil.StructLinuxNetdevName(nd.Name))
+		t, err := iproute2.NewTap(netutil.StructLinuxNetdevName(nd.Name), 1)
 		if err != nil {
 			return nil, grpcutil.WrapGrpcErrorf(codes.Internal, errors.Wrapf(err, "Failed to create tap '%s'", nd.Name).Error())
 		}
@@ -449,7 +452,7 @@ func isBridgeDeletable(b *iproute2.Bridge) (bool, error) {
 	// TODO: 以下遅い気がする
 	i := 0
 	for _, l := range links {
-		if _, err := iproute2.NewTap(l); err == nil {
+		if _, err := iproute2.NewTap(l, 1); err == nil {
 			i++
 		}
 	}
